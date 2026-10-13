@@ -1,0 +1,2111 @@
+<title>Binnacle Build Plan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@500;600;700&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: fixed left rail of sections, single reading column of spec cards,
+   drill-down opens inline so nothing is lost on navigation. */
+:root{
+  --bg:#F4F6F8; --surface:#FFFFFF; --surface-2:#EDF1F5; --sunk:#E6ECF1;
+  --ink:#101B26; --ink-2:#46586A; --ink-3:#6E8294;
+  --line:#D9E1E8; --line-soft:#E9EFF4;
+  --navy:#123A5E; --navy-2:#1C5789; --brass:#A96F0C; --brass-soft:#FAF1E0;
+  --ok:#14654A; --ok-soft:#E3F1EB; --warn:#855408; --warn-soft:#FBF0DC;
+  --crit:#99291D; --crit-soft:#FAE9E6; --info:#0C5F7C; --info-soft:#E2F0F5;
+  --display:"Barlow","Helvetica Neue",Arial,sans-serif;
+  --body:"Source Sans 3",-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+  --r:9px; --shadow:0 1px 2px rgba(16,27,38,.05),0 8px 24px rgba(16,27,38,.06);
+}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){
+  --bg:#0B131B; --surface:#111C26; --surface-2:#16242F; --sunk:#0E1821;
+  --ink:#E6EDF3; --ink-2:#9FB2C2; --ink-3:#778EA1;
+  --line:#22323F; --line-soft:#1B2935;
+  --navy:#5FA3D8; --navy-2:#7FBBEA; --brass:#D9A13C; --brass-soft:#2A2113;
+  --ok:#5FC79C; --ok-soft:#10271F; --warn:#D9A64A; --warn-soft:#2A2113;
+  --crit:#E88A7D; --crit-soft:#2C1714; --info:#6CC0DB; --info-soft:#0E242B;
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#0B131B; --surface:#111C26; --surface-2:#16242F; --sunk:#0E1821;
+  --ink:#E6EDF3; --ink-2:#9FB2C2; --ink-3:#778EA1;
+  --line:#22323F; --line-soft:#1B2935;
+  --navy:#5FA3D8; --navy-2:#7FBBEA; --brass:#D9A13C; --brass-soft:#2A2113;
+  --ok:#5FC79C; --ok-soft:#10271F; --warn:#D9A64A; --warn-soft:#2A2113;
+  --crit:#E88A7D; --crit-soft:#2C1714; --info:#6CC0DB; --info-soft:#0E242B;
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);
+  font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{font-family:var(--display);margin:0;text-wrap:balance;letter-spacing:-.01em}
+p{margin:0}
+button{font:inherit;color:inherit}
+
+.wrap{display:grid;grid-template-columns:236px minmax(0,1fr);gap:0;
+  max-width:1420px;margin:0 auto;min-height:100%}
+
+/* ---- rail ---- */
+.rail{border-right:1px solid var(--line);padding-block:22px 40px;padding-inline:16px 14px;
+  position:sticky;top:env(safe-area-inset-top,0px);align-self:start;max-height:100vh;overflow-y:auto}
+.mast{margin-bottom:22px}
+.mast .mk{font-family:var(--display);font-weight:700;font-size:21px;letter-spacing:-.02em;line-height:1}
+.mast .sb{font-size:11px;color:var(--ink-3);letter-spacing:.1em;text-transform:uppercase;
+  margin-top:6px;font-weight:600}
+.railnav{display:flex;flex-direction:column;gap:1px}
+.railnav button{display:flex;align-items:baseline;gap:9px;background:none;border:none;
+  text-align:left;padding:7px 9px;border-radius:7px;cursor:pointer;color:var(--ink-2);
+  font-size:13.5px;font-weight:600;width:100%}
+.railnav button:hover{background:var(--surface-2);color:var(--ink)}
+.railnav button[aria-current="true"]{background:var(--navy);color:#fff}
+.railnav button .nx{font-family:var(--mono);font-size:10.5px;opacity:.65;flex:none;width:16px}
+.railnav button[aria-current="true"] .nx{opacity:.8}
+.railfoot{margin-top:22px;padding-top:16px;border-top:1px solid var(--line);
+  font-size:11.5px;color:var(--ink-3);line-height:1.5}
+.tgl{display:block;margin-top:12px;background:var(--surface);border:1px solid var(--line);border-radius:6px;
+  padding:5px 10px;font-size:11.5px;cursor:pointer;color:var(--ink-2);font-weight:600}
+.tgl:hover{border-color:var(--navy)}
+
+/* ---- main ---- */
+.main{padding-block:26px 72px;padding-inline:28px 28px;min-width:0}
+.sec{display:none}
+.sec.on{display:block}
+.sechead{margin-bottom:22px;padding-bottom:16px;border-bottom:2px solid var(--line)}
+.sechead .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.08em;
+  color:var(--brass);font-weight:600;text-transform:uppercase}
+.sechead h2{font-size:30px;font-weight:700;margin-top:7px;line-height:1.1}
+.sechead .lede{color:var(--ink-2);margin-top:9px;max-width:66ch;font-size:15.5px}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+  padding:18px 20px;box-shadow:var(--shadow)}
+.stack{display:flex;flex-direction:column;gap:14px}
+.cols{display:grid;gap:14px}
+.c2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.c3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.c4{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media (max-width:980px){.c3,.c4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+h3.ch{font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);
+  font-weight:700;margin-bottom:12px;margin-top:28px}
+h3.ch:first-child{margin-top:0}
+
+.lead{font-size:16.5px;line-height:1.6;color:var(--ink-2);max-width:68ch}
+.lead strong{color:var(--ink);font-weight:600}
+
+/* ---- principle / numbered ---- */
+.prin{display:grid;grid-template-columns:30px minmax(0,1fr);gap:0 14px;align-items:start}
+.prin .n{font-family:var(--mono);font-size:12px;color:var(--brass);font-weight:600;padding-top:2px}
+.prin b{display:block;font-family:var(--display);font-size:15.5px;font-weight:600;margin-bottom:3px}
+.prin span{font-size:14px;color:var(--ink-2);display:block}
+
+/* ---- pills ---- */
+.pill{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;
+  font-size:11px;font-weight:600;letter-spacing:.015em;white-space:nowrap;
+  background:var(--surface-2);color:var(--ink-2);font-family:var(--body)}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+.pill.crit{background:var(--crit-soft);color:var(--crit)}
+.pill.info{background:var(--info-soft);color:var(--info)}
+.pill.brass{background:var(--brass-soft);color:var(--brass)}
+.pill.solid{background:var(--navy);color:#fff}
+.pills{display:flex;gap:5px;flex-wrap:wrap}
+
+code,.mono{font-family:var(--mono);font-size:.88em}
+.tag{font-family:var(--mono);font-size:11px;background:var(--sunk);color:var(--ink-2);
+  padding:1px 6px;border-radius:4px;white-space:nowrap}
+
+/* ---- journey ---- */
+.jlist{display:flex;flex-direction:column;gap:9px}
+.jstage{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.jstage.open{border-color:var(--navy)}
+.jhead{display:grid;grid-template-columns:46px minmax(0,1fr) auto;gap:14px;align-items:center;
+  padding:13px 16px;cursor:pointer;background:none;border:none;width:100%;text-align:left}
+.jhead:hover{background:var(--surface-2)}
+.jhead .jn{font-family:var(--mono);font-size:12px;font-weight:600;color:#fff;background:var(--navy);
+  border-radius:6px;padding:4px 0;text-align:center}
+.jstage.open .jhead .jn{background:var(--brass)}
+.jhead .jt{font-family:var(--display);font-size:16px;font-weight:600;line-height:1.25}
+.jhead .jw{font-size:12.5px;color:var(--ink-3);margin-top:2px}
+.jhead .jc{font-family:var(--mono);font-size:17px;color:var(--ink-3);transition:transform .15s}
+.jstage.open .jhead .jc{transform:rotate(45deg);color:var(--brass)}
+.jbody{padding:4px 16px 18px;border-top:1px solid var(--line-soft)}
+
+.dgrid{display:grid;grid-template-columns:132px minmax(0,1fr);gap:10px 16px;
+  font-size:14px;margin-top:14px}
+.dgrid dt{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);
+  font-weight:700;padding-top:3px}
+.dgrid dd{margin:0;color:var(--ink-2);min-width:0}
+.dgrid dd strong{color:var(--ink);font-weight:600}
+.dgrid ul{margin:0;padding-left:17px}
+.dgrid li{margin-bottom:3px}
+.dgrid li:last-child{margin-bottom:0}
+@media (max-width:700px){.dgrid{grid-template-columns:1fr;gap:3px 0}
+  .dgrid dt{margin-top:11px}}
+
+/* ---- tables ---- */
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{text-align:left;padding:9px 12px;background:var(--surface-2);border-bottom:1px solid var(--line);
+  font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-2);font-weight:700;
+  white-space:nowrap}
+td{padding:9px 12px;border-bottom:1px solid var(--line-soft);vertical-align:top}
+tbody tr:last-child td{border-bottom:none}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+td.ctr,th.ctr{text-align:center}
+.tw.tight td,.tw.tight th{padding:7px 10px;font-size:12.8px}
+
+/* ---- matrix ---- */
+.mx td.ctr{font-family:var(--mono);font-size:12px;font-weight:600}
+.mx .y{color:var(--ok)}
+.mx .n{color:var(--ink-3);opacity:.45}
+.mx .p{color:var(--warn)}
+.mx .a{color:var(--navy-2)}
+.mxkey{display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--ink-2);margin-top:11px}
+.mxkey b{font-family:var(--mono);margin-right:5px}
+
+/* ---- filter bar ---- */
+.fbar{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.fbar select,.fbar input{padding:6px 10px;border:1px solid var(--line);border-radius:7px;
+  background:var(--surface);font-size:13px;color:var(--ink);outline:none}
+.fbar select:focus,.fbar input:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(28,87,137,.14)}
+.fbar input{min-width:190px}
+.fbar .ct{margin-left:auto;font-size:12.5px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+
+/* ---- rule block ---- */
+.rule{display:grid;grid-template-columns:58px minmax(0,1fr);gap:12px;padding:11px 13px;
+  border:1px solid var(--line);border-radius:7px;background:var(--surface)}
+.rule + .rule{margin-top:7px}
+.rule .rid{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--brass)}
+.rule .rt{font-size:14px;font-weight:600;margin-bottom:3px}
+.rule .rp{font-family:var(--mono);font-size:11.5px;color:var(--ink-3);
+  background:var(--sunk);padding:4px 7px;border-radius:5px;margin-top:5px;
+  overflow-x:auto;white-space:pre}
+.rule .rd{font-size:13.3px;color:var(--ink-2)}
+
+/* ---- note ---- */
+.note{border-left:3px solid var(--navy);background:var(--surface);border:1px solid var(--line);
+  border-left-width:3px;border-radius:7px;padding:12px 14px;font-size:14px;color:var(--ink-2)}
+.note b{color:var(--ink)}
+.note.brass{border-left-color:var(--brass)}
+.note.crit{border-left-color:var(--crit)}
+.note.ok{border-left-color:var(--ok)}
+
+/* ---- state machine ---- */
+.sm{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12.5px;margin-top:8px}
+.sm .st{background:var(--surface-2);border:1px solid var(--line);border-radius:6px;
+  padding:3px 9px;font-weight:600;font-size:12px}
+.sm .st.term{background:var(--ok-soft);color:var(--ok);border-color:transparent}
+.sm .st.bad{background:var(--crit-soft);color:var(--crit);border-color:transparent}
+.sm .ar{color:var(--ink-3);font-family:var(--mono);font-size:11px}
+
+/* ---- phase ---- */
+.ph{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);overflow:hidden}
+.ph + .ph{margin-top:11px}
+.phh{display:flex;gap:12px;align-items:baseline;padding:13px 16px;background:var(--surface-2);
+  border-bottom:1px solid var(--line);flex-wrap:wrap}
+.phh .pn{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--brass)}
+.phh h4{font-size:16px;font-weight:600;flex:1;min-width:140px}
+.phb{padding:14px 16px}
+
+.ent{border:1px solid var(--line);border-radius:7px;background:var(--surface);padding:11px 13px}
+.ent .en{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--navy-2)}
+.ent .ed{font-size:12.8px;color:var(--ink-2);margin-top:4px}
+.ent .ef{font-size:11.5px;color:var(--ink-3);margin-top:6px;font-family:var(--mono);line-height:1.5}
+
+.copybtn{background:var(--surface);border:1px solid var(--line);border-radius:7px;
+  padding:5px 11px;font-size:12px;font-weight:600;cursor:pointer;color:var(--ink-2)}
+.copybtn:hover{border-color:var(--navy);color:var(--ink)}
+
+.src{font-size:12.5px;color:var(--ink-3);margin-top:7px}
+.src a{color:var(--navy-2)}
+
+a{color:var(--navy-2)}
+:focus-visible{outline:2px solid var(--brass);outline-offset:2px;border-radius:4px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+@media (max-width:860px){
+  .wrap{grid-template-columns:1fr}
+  .rail{position:static;max-height:none;border-right:none;border-bottom:1px solid var(--line);
+    padding-inline:16px;padding-block:18px 14px}
+  .railnav{flex-direction:row;overflow-x:auto;gap:5px;padding-bottom:4px}
+  .railnav button{white-space:nowrap;width:auto;background:var(--surface);border:1px solid var(--line)}
+  .railfoot{display:none}
+  .main{padding-inline:16px;padding-block:20px 56px}
+  .c2{grid-template-columns:1fr}
+  .sechead h2{font-size:25px}
+}
+</style>
+<div class="wrap">
+  <nav class="rail" aria-label="Plan sections">
+    <div class="mast">
+      <div class="mk">Binnacle</div>
+      <div class="sb">Build plan v2</div>
+    </div>
+    <div class="railnav" id="railnav"></div>
+    <div class="railfoot">
+      Placement and sea service, for the institute.<br>
+      Enquiry through Certificate of Competency.
+      <button class="tgl" id="themeBtn" type="button">Switch theme</button>
+    </div>
+  </nav>
+  <main class="main" id="main"></main>
+</div>
+<script>
+"use strict";
+/* ===========================================================
+   THE JOURNEY — empty portal to Certificate of Competency
+   =========================================================== */
+var JOURNEY = [
+{ n:"J1", t:"Institute setup and configuration", w:"Head of Institute · Registrar · System",
+  purpose:"The portal arrives empty. Everything below is configured by the institute itself, without the vendor, and every step is counted from what is on record rather than ticked off a list.",
+  sys:[
+    "Guided setup checklist: stages and steps, each one marked done only because the records that satisfy it exist. Remove the records and the step opens again.",
+    "Institute profile, approval reference, address and contacts — what every register, letter and privacy notice carries.",
+    "Course approvals with intake cap, issue date and validity, so an over-enrolment is refused rather than reported later.",
+    "Programmes, academic years, terms, subjects, assessment blueprint, pass thresholds and grading scales whose bands cover every mark with no gap and no overlap.",
+    "Document checklists per stage, certificate types, document templates, notification rules and roll-number series per batch.",
+    "Master lists the institute owns — vessel types, ranks, ports — so no drop-down is ever free text.",
+    "Staff, roles and granular rights, with role templates the institute can edit rather than fixed roles it cannot.",
+    "Demonstration data removed in one action, so the same portal that sells the product becomes the one that runs it.",
+    "Sign-off separates what blocks enrolment from what blocks grading, and says which is outstanding."],
+  data:["Institute","CourseApproval","Programme","AcademicYear","Term","Subject","AssessmentBlueprint","GradingScale","DocumentChecklist","CertificateType","NotificationRule","RollNumberSeries","MasterList","Role","SetupStep"],
+  dec:["Whether this institute can start enrolling, and precisely which step is holding it up.",
+    "Whether a programme can produce a result at all — terms, thresholds and a grading scale are a different gate from enrolment.",
+    "Whether the approval under which a batch is being filled is still valid and still has seats."],
+  risk:["Setup signed off with programmes that have no terms, so cadets are enrolled into something that cannot be graded.",
+    "A batch opened with no roll-number series, so cadets are admitted with no roll number and nothing says so.",
+    "Role templates copied from another institute that do not match this one's actual separation of duties."],
+  intl:"Approval references and the authority that issues them differ. Hold the approving authority as a field rather than assuming one." },
+
+{ n:"J1", t:"Enquiry and application", w:"Prospect · Admissions Officer · Counsellor",
+  purpose:"Capture a prospective candidate once, cleanly, and never retype their details again. Everything downstream hangs off the record created here.",
+  sys:[
+    "Public application form writes straight into the candidate register — no spreadsheet in between.",
+    "Duplicate detection on mobile, email and ID number at the moment of entry, not during a later clean-up.",
+    "Application fee captured against the application, with an auto-numbered receipt.",
+    "Source attribution: counsellor, agent, referral, campaign or walk-in, recorded on the record itself.",
+    "Incomplete applications stay visible as a working queue rather than disappearing."],
+  data:["Candidate","Application","Payment","SourceAttribution"],
+  dec:["Which channels actually convert, not just which generate enquiries.",
+    "Where applications stall, by stage and by counsellor.",
+    "Whether fee collection is keeping pace with application volume."],
+  risk:["The same person applies twice under slightly different spellings.",
+    "Fee paid but the form was never completed — money received against nothing.",
+    "Agent-sourced candidates disputed later when a commission is claimed."],
+  intl:"Identity is the passport, not a national ID. No national entrance test applies. An overseas representative or agent becomes a tracked channel with its own agreement record." },
+
+{ n:"J2", t:"Eligibility screening and entrance assessment",
+  w:"Admissions Officer · System",
+  purpose:"Apply the published eligibility criteria as code rather than as a reading of a brochure, so two officers reach the same answer on the same file.",
+  sys:[
+    "Eligibility runs against the course master: age window computed from date of birth at the course start date, subject marks, accepted board list, and the exclusions the course carries.",
+    "Every rejection returns a reason code, not just a verdict — this is what you quote back to a parent.",
+    "Online assessment captured by section, not as a single total, so weak areas are visible from day one.",
+    "National entrance test rank recorded where the course requires it.",
+    "Borderline files route to a referral queue for a human decision, with the reason preserved."],
+  data:["EligibilityCheck","TestAttempt","TestSection","ReferralDecision"],
+  dec:["Which entrance sections predict later academic performance — this is the data that lets you improve the test.",
+    "Whether the cut-off is set where it should be, judged against how past cohorts performed.",
+    "Which officer or panel is referring unusually often."],
+  risk:["Improvement and compartment candidates sitting outside the standard rule.",
+    "A board not on the accepted list, discovered after the fee was taken.",
+    "Final marksheet not yet issued at the time of application."],
+  intl:"Qualification equivalence has to be assessed rather than matched, and evidence of English proficiency replaces the school English mark. Expect a manual referral by default." },
+
+{ n:"J3", t:"Interview and medical",
+  w:"Interview panel · Approved medical examiner · Admissions",
+  purpose:"Make the two human judgements — can this person do the job, and are they fit for sea service — recorded, comparable and defensible.",
+  sys:[
+    "Slot booking with panel assignment, so a candidate books rather than being told to wait.",
+    "Structured scorecard per competency instead of free text: communication, motivation, aptitude, awareness of the career, physical confidence.",
+    "Referral to a doctor drawn from the approved examiner list held in the system, never typed in free text.",
+    "Medical result recorded as fit, temporarily unfit or unfit, each with a reason and, where relevant, a re-examination date.",
+    "Panel-level reporting so that scoring drift between panels becomes visible."],
+  data:["InterviewSlot","InterviewScore","MedicalExamination","ApprovedExaminer"],
+  dec:["Whether panels are scoring consistently — the same candidate should not depend on who interviewed them.",
+    "Which medical grounds are causing the most rejections, and whether candidates can be warned earlier.",
+    "How many interview slots to open for a target intake, based on past show and conversion rates."],
+  risk:["Candidate does not attend and the slot is wasted.",
+    "Colour vision failure found only at the medical, after months of candidate effort.",
+    "Temporarily unfit candidates lost entirely because nobody followed up on the re-examination date."],
+  intl:"The examination must be done by a practitioner the relevant flag state accepts. Build the examiner list so it can hold more than one accepting authority." },
+
+{ n:"J4", t:"Merit list, offer and seat booking",
+  w:"Admissions Officer · Head of Institute",
+  purpose:"Turn four separate scores into one defensible ranking, and manage the waitlist as seats move.",
+  sys:[
+    "Merit computed from a configurable weighted formula across academics, entrance assessment, interview and medical clearance — weights are a setting, not a code change.",
+    "Provisional offer generated with a validity date; lapse is automatic when the date passes.",
+    "Seat booking against a batch, with live seat counts.",
+    "Waitlist moves automatically when an offer lapses or is declined, and the movement is logged.",
+    "Published merit list export for the notice board, generated from the same data the decision used."],
+  data:["MeritList","Offer","SeatBooking","Waitlist"],
+  dec:["Where to set the cut-off for a target intake.",
+    "Conversion by rank band — how deep into the list you need to go to fill the batch.",
+    "Whether to open an additional batch."],
+  risk:["Two candidates tie and the system has no declared tie-breaker.",
+    "Offer lapses silently and the seat is lost for the intake.",
+    "Waitlist movement disputed because the order was changed by hand."],
+  intl:"Offers need a longer validity window to allow for visa processing, and seat booking has to tolerate a payment arriving from abroad." },
+
+{ n:"J5", t:"Fee, sponsorship and education loan",
+  w:"Accounts · Admissions · Candidate · Bank",
+  purpose:"Know, at any moment, who owes what and whose funding is at risk — before it becomes a drop-out.",
+  sys:[
+    "Fee schedule defined per batch with instalments and due dates; receipts numbered automatically.",
+    "Sponsorship letter generated from the candidate's own record for submission to a bank.",
+    "Loan application tracked through its stages so a delay is visible while it can still be fixed.",
+    "Ageing view of outstanding balances by batch and by due date.",
+    "Refund and forfeiture rules applied as a policy setting rather than a case-by-case decision."],
+  data:["FeeSchedule","FeeInstalment","Receipt","SponsorshipLetter","LoanApplication","RefundRequest"],
+  dec:["Cash position for the coming quarter.",
+    "Which candidates are at real risk of dropping out for funding reasons, early enough to help.",
+    "Which banks process sponsored applications fastest — useful advice to give the next cohort."],
+  risk:["Loan sanctioned but disbursed late, after the course has started.",
+    "Instalment due dates not aligned to the academic calendar.",
+    "Refund claimed on a non-refundable component."],
+  intl:"Foreign remittance needs the regulatory documentation recorded against the receipt, and currency and exchange rate must be stored with the payment, not inferred later." },
+
+{ n:"J6", t:"Enrolment and onboarding",
+  w:"Registrar · Document Controller · Candidate",
+  purpose:"Convert an admitted candidate into a cadet with a complete, verified file — and replace the shared drive with something that has owners and states.",
+  sys:[
+    "Document checklist generated by course and nationality, so each cadet sees only what applies to them.",
+    "Candidate uploads directly, or submits a link; either way the item enters the same verification workflow.",
+    "Seafarer identification number application tracked through to allotment, then recorded against the cadet.",
+    "Induction completion, kit issue, hostel allotment and identity card generation.",
+    "Account provisioned on the learning system; the portal holds the record and links out rather than duplicating course material."],
+  data:["Cadet","DocumentRequirement","DocumentSubmission","InductionRecord","AssetIssue"],
+  dec:["Which cadets cannot be cleared to start, and precisely which document is holding each one up.",
+    "Where the document backlog sits — with the cadet, or with the verifier.",
+    "Whether identification number applications are moving at the expected rate."],
+  risk:["A drive link is shared, then its permission changes and the file becomes unreadable.",
+    "A document is verified by someone with no authority to verify it.",
+    "An expiring document is verified today and expires before the cadet goes to sea."],
+  intl:"Add visa, residence permit and, where required, apostilled or attested academic documents. Expect a longer lead time and a different verification authority." },
+
+{ n:"J7", t:"Pre-sea academics",
+  w:"Faculty · Registrar · Cadet",
+  purpose:"Hold the academic record that everything later depends on — placement eligibility, examination applications and the institute's own inspection file.",
+  sys:[
+    "Timetable and session-level attendance rather than a single daily mark, so a cadet who skips one subject is visible.",
+    "Internal tests, practicals, semester examinations and re-attempts, each with marks against a maximum and a result.",
+    "Every assessment item carries a competency tag — this is what makes the gap analysis possible later.",
+    "Faculty remarks as first-class records with a visibility setting: some are written for the cadet to read, some are internal.",
+    "Re-attempt scheduling and tracking, so a backlog has a plan attached to it rather than sitting open."],
+  data:["Subject","Session","AttendanceRecord","Assessment","AssessmentItem","FacultyRemark","ReattemptPlan"],
+  dec:["Which cadets are drifting, early enough in the term to intervene.",
+    "Which subjects consistently produce poor results, pointing at delivery rather than the cadets.",
+    "Which faculty are carrying the assessment load, and whether any are over capacity."],
+  risk:["Attendance taken on paper and entered weeks later, by which point it is only a record and not a warning.",
+    "An internal remark written carelessly, then read by the cadet or disclosed to a company.",
+    "An assessment with no competency tag, which silently disappears from the gap analysis."],
+  intl:"No difference in the academics themselves; the difference is in the examination pathway the record eventually feeds." },
+
+{ n:"J9", t:"Workshop, simulator and conduct", w:"Workshop Instructor · Simulator Instructor · Course Coordinator · Head of Institute",
+  purpose:"Hold the practical half of pre-sea training, and the behavioural record alongside it, with the same rigour as the written examinations — because this is where a cadet is actually judged ready for a ship.",
+  sys:[
+    "Workshop stations and simulator scenarios as configured resources, each with capacity and an instructor.",
+    "Rotation timetable across stations, so every cadet demonstrably covers every station rather than the popular ones.",
+    "Skill sheets and job cards signed off per cadet per station, with the instructor named and the date recorded.",
+    "Simulator runs recorded with the scenario version, the score and the instructor assessment.",
+    "Merit and demerit records, each tied to an observed incident rather than an impression.",
+    "Disciplinary cases with stages, a hearing record and an outcome, visible to the institute and to nobody outside it.",
+    "Remarks by role — course coordinator, head of department, dean, principal, workshop instructor, faculty — each with its own visibility setting.",
+    "Extra-curricular and sports participation recorded, because a company asks about it and the record should answer."],
+  data:["WorkshopStation","SimulatorScenario","RotationSlot","SkillSheet","JobCard","SimulatorRun","MeritRecord","DemeritRecord","DisciplinaryCase","CadetRemark","ExtraCurricularRecord"],
+  dec:["Which cadets have not completed a station, early enough in the rotation to fix it.",
+    "Whether an instructor is signing off at a credible rate compared with their peers.",
+    "Whether a pattern of demerits is concentrated in one batch, one hostel or one period."],
+  risk:["Job cards signed in a batch at the end of the term, which is not evidence of anything.",
+    "A disciplinary record leaking to a company, which is a welfare failure and a legal one.",
+    "Remarks written by six different roles with no agreed meaning, producing a file nobody can read."],
+  intl:"No difference in the practical content; the difference is who may countersign a skill sheet under the relevant approval." },
+
+{ n:"J8", t:"Competency, gaps and nudges",
+  w:"Cadet · Faculty mentor · System",
+  purpose:"Give the cadet an honest, specific picture of where they stand and what to do next — and give the mentor the same picture before a problem becomes a failure.",
+  sys:[
+    "Competency framework maps every assessment item to a tagged area, so a score becomes a statement about a skill rather than about a test.",
+    "The cadet sees a score per area against four reference points: the pass mark, their batch median, the benchmark for the companies they are targeting, and their own trend.",
+    "Weak areas are ranked by the gap, with the evidence shown — which tests, which items, on which dates.",
+    "Nudges fire from explicit threshold rules, each naming what to do rather than only what is wrong.",
+    "Curated resources attached per competency area, drawn from a library the faculty maintains.",
+    "Soft-skills record kept separately: communication, teamwork, situation awareness, decision making, workload management, leadership — observed and rated, not tested.",
+    "Mentor allocation, with a running log of conversations held."],
+  data:["Competency","CompetencyScore","GapFinding","NudgeRule","NudgeEvent","Resource","SoftSkillObservation","MentorLog"],
+  dec:["For the cadet: what to study this week, and whether they are ready for a particular company's test.",
+    "For the mentor: who needs a conversation now, ranked by risk rather than by alphabet.",
+    "For the institute: whether the nudges are changing behaviour at all, measured by what happened after each one."],
+  risk:["Nudges fire so often they are ignored — cadence and snooze rules matter as much as the triggers.",
+    "A gap shown without evidence reads as an accusation and gets dismissed.",
+    "Soft-skills ratings become a popularity score unless each one is tied to an observed situation."],
+  intl:"Language support becomes a tracked competency area in its own right for candidates assessed on English proficiency at entry." },
+
+{ n:"J9", t:"Placement readiness and benchmarks",
+  w:"Placement Officer · Cadet · Faculty",
+  purpose:"Replace the vague advice of 'study hard, companies are coming' with a specific, measured readiness position per company.",
+  sys:[
+    "Company test blueprint for each recruiter: the areas they weight, the format, the duration and the historical qualifying level.",
+    "Readiness score per company, computed from the cadet's competency scores against that blueprint and shown with its working.",
+    "Mock tests built from the same blueprint, with results feeding back into the gap engine.",
+    "Interview preparation: question banks by area, recorded practice sessions, faculty feedback.",
+    "Profile and CV assembled from verified record data, so nothing on it is unsupported.",
+    "Batch percentile so a cadet knows where they stand without seeing anyone else's marks."],
+  data:["CompanyTestBlueprint","ReadinessScore","MockAttempt","InterviewPrepSession","CadetProfile"],
+  dec:["For the cadet: which companies to target, and what to fix before that company's drive.",
+    "For the placement officer: who to put forward for which drive, with a defensible reason.",
+    "For the institute: which benchmarks the cohort consistently misses, which is a curriculum signal."],
+  risk:["Benchmarks become stale — they need a review date and an owner.",
+    "Readiness score treated as a promise of selection rather than a preparation tool.",
+    "Mock test content leaking into the real thing and destroying the benchmark's value."],
+  intl:"Target employers differ by flag and by nationality restrictions, so a cadet's eligible company set has to be filtered before readiness is computed." },
+
+{ n:"J10", t:"Company engagement and campus process",
+  w:"Placement Officer · Company · Cadet · Head of Institute",
+  purpose:"Run the recruiter relationship as a managed process rather than an email thread, and share candidate data only with consent.",
+  sys:[
+    "Company register with a relationship type — formal agreement, informal arrangement, one-off, prospect or ended. Only a formal agreement needs an instrument; a company that simply visits and selects cadets gets a login, vacancies and offers like anyone else, shown as an open arrangement rather than as a warning.",
+    "Berth commitments recorded against each agreement, with committed, filled and open counts, and renewal alerting inside a configurable lead time.",
+    "Unsponsored cadets held as a managed pool with their own view, because they are the cadets the placement wing exists for.",
+    "Drive scheduling: dates, rounds, venue, the cadets put forward and the cadets who attended.",
+    "Candidate profiles released to a company only after the cadet consents to that company, with the consent recorded and revocable.",
+    "Company-side shortlist, test results and interview outcomes entered by the company itself in its own workspace.",
+    "Offer issued, accepted or declined, with reasons captured on decline.",
+    "Sponsorship recorded against the cadet, which then drives what that company can see later."],
+  data:["Company","Agreement","BerthCommitment","Drive","DriveRound","ConsentGrant","Shortlist","CompanyAssessment","Offer","Sponsorship","UnsponsoredPool"],
+  dec:["For the institute: which companies to invest the relationship in, judged on offers made and berths actually provided.",
+    "For the company: which cadets to shortlist, on evidence rather than on a reference.",
+    "For both: whether an agreement is worth renewing."],
+  risk:["Profiles shared before consent — a privacy failure with real consequences.",
+    "A company enters results late and the drive cannot be closed out.",
+    "Offers made outside the system and never recorded, so the placement figures are wrong.",
+    "An informal company treated as a lesser relationship in the data and quietly excluded from reporting it should appear in."],
+  intl:"Nationality and flag-state restrictions have to be applied before a cadet appears in a company's pool at all." },
+
+{ n:"J11", t:"Pre-joining and deployment",
+  w:"Training Superintendent · Document Controller · Company · Cadet",
+  purpose:"Get the cadet to the ship with everything valid on the day they sign on, not on the day the documents were checked.",
+  sys:[
+    "Berth allotment against a requisition from the company, matched to cadets who clear the deployment screening rules.",
+    "Document pack assembled by flag state and vessel type — the requirement set is data, not a printed checklist.",
+    "Validity checked forward to the end of the intended contract, not to today.",
+    "Visa, travel and joining logistics tracked with owners and dates.",
+    "Pre-joining briefing recorded as completed, with content version noted.",
+    "Joining instructions issued to the cadet and acknowledged."],
+  data:["Requisition","BerthAllotment","DocumentPack","TravelArrangement","Briefing","JoiningInstruction"],
+  dec:["Who can actually be released this month, and what is blocking everyone else.",
+    "Whether the berths available match the cadets ready, by rank and by date.",
+    "Which document type most often delays a joining — that is a process fix, not a reminder."],
+  risk:["A document valid at screening but expiring mid-contract.",
+    "Visa delay discovered after tickets are issued.",
+    "Cadet released with an unacknowledged briefing, which becomes a liability question later."],
+  intl:"Flag state requirements, seafarer identity documents and transit visas vary by route; treat the requirement set as configurable per flag and per nationality." },
+
+{ n:"J12", t:"Onboard training and sea service",
+  w:"Cadet · Shipboard Training Officer · Master · Chief Engineer · Company Training Officer · Institute",
+  purpose:"Accumulate sea service and record-book evidence in a form the institute can later assess and defend, rather than discovering gaps at the eighteen-month mark.",
+  sys:[
+    "Sign-on declared by the cadet and confirmed by the company; the sea service clock starts from the confirmed record.",
+    "Record-book tasks tracked by section and sub-task, each with the assessing officer, the date and the proficiency decision.",
+    "Watchkeeping hours logged by type — bridge, port and cargo, engine room, steering — because each carries its own separate requirement.",
+    "Monthly review by the Master, weekly check by the training officer, quarterly summary routed to the institute through the company training officer.",
+    "Projects and activity workbook tracked as distinct deliverables with their own completion rules.",
+    "Uploads accepted as files or as links, both entering the same verification queue.",
+    "Sign-off recorded, sea service computed excluding the joining and sign-off days, and a testimonial raised.",
+    "A live completion position against every criterion, visible to the cadet while there is still time to act.",
+    "Distance learning programme enrolment and progress tracked alongside sea service, because the two run concurrently and the certificate waits for both.",
+    "Each vessel served on held as its own record — first ship, second ship and beyond — with company, flag, type, rank and dates, since ship-type requirements are assessed per type sailed."],
+  data:["SignOn","SeaServiceRecord","VesselService","RecordBookTask","WatchkeepingLog","MonthlyReview","QuarterlySubmission","Project","ActivityWorkbookItem","DistanceLearningRecord","Testimonial"],
+  dec:["For the cadet: what is still short, with enough notice to complete it onboard.",
+    "For the institute: which cadets are drifting behind the phase schedule and need the company contacted.",
+    "For the company: whether their training officers are signing tasks at a credible rate."],
+  risk:["The record book is completed in a rush at the end and the dates are not credible.",
+    "Watchkeeping hours logged but not certified by the Master, which fails on scrutiny.",
+    "The book is lost onboard, which requires a police report and a controlled re-issue.",
+    "Sea service claimed across a period the company cannot confirm."],
+  intl:"Service on different flags and ship types has to be recorded separately, because the ship-type task requirement is assessed per type sailed." },
+
+{ n:"J13", t:"Mid-term review",
+  w:"Institute assessor · Cadet · Company Training Officer",
+  purpose:"Catch a failing record book at the halfway point, when it can still be fixed, instead of at final assessment when it cannot.",
+  sys:[
+    "Review window opens automatically between six and twelve months of recorded sea service.",
+    "Cadet submits or carries the record book, workbooks, project file and watchkeeping records.",
+    "Interview conducted in person or by video, with the mode recorded.",
+    "Assessor scores the records against the phase expectations and writes findings.",
+    "Review report issued to the cadet and copied to the company training officer.",
+    "Any shortfall becomes a tracked action with a target date, not a comment in a report."],
+  data:["MidTermReview","ReviewFinding","CorrectiveAction"],
+  dec:["Whether this cadet is on track to complete, and if not, what specifically has to change.",
+    "Which ships or companies produce consistently weak record books.",
+    "Whether the review itself is being done on time, or quietly slipping."],
+  risk:["Review not held because nobody was watching the window.",
+    "Findings raised but never followed up, so the same gaps appear at final assessment.",
+    "Cadet at sea during the whole window with no video facility arranged."],
+  intl:"The review has to work remotely as the normal case rather than the exception." },
+
+{ n:"J14", t:"Final assessment and completion certificate",
+  w:"Institute assessor · Registrar · Cadet · Endorsing authority",
+  purpose:"Decide, on evidence, whether the shipboard training programme is complete — and issue the certificate the cadet needs to sit their examination.",
+  sys:[
+    "Cadet books an appointment to present the completed records; the slot is a managed resource.",
+    "Submission checklist verified item by item, with each item marked received and scrutinised.",
+    "Completion engine evaluates every criterion live and shows which are met and which are short, with the figures.",
+    "Written and oral assessment conducted and scored by the institute.",
+    "Certificate issued only when every criterion passes and the assessment is cleared; a partial file cannot produce a certificate.",
+    "Endorsement by the designated external authority tracked through to return.",
+    "Certificate collection appointment booked by the cadet, and handover recorded."],
+  data:["AssessmentAppointment","SubmissionItem","CompletionEvaluation","FinalAssessment","CompletionCertificate","Endorsement"],
+  dec:["Whether this file will survive scrutiny — answered before the certificate is issued, not after.",
+    "Where the assessment queue is backing up.",
+    "Which criterion most often falls short across the cohort, which points back at the onboard phase."],
+  risk:["A certificate issued on an incomplete file, which is the single most damaging thing the institute can do.",
+    "Endorsement delays holding up examination applications.",
+    "Records submitted and then mislaid between scrutiny and return."],
+  intl:"The endorsing authority and the examination pathway differ; the certificate template and the endorsement step must both be configurable." },
+
+{ n:"J15", t:"Examination, certification and alumni",
+  w:"Registrar · Cadet · Company · Institute",
+  purpose:"Follow the cadet past the certificate, because outcomes are what the next cohort and the next company relationship are sold on.",
+  sys:[
+    "Examination application pack assembled from records already held — nothing retyped.",
+    "Examination attempts and results recorded, including the shore phase where the pathway requires one.",
+    "Certificate of competency recorded when issued by the authority; the institute records it, never generates it.",
+    "Service obligation to the sponsoring company tracked against its term.",
+    "Alumni outcomes: rank progression, employer, and willingness to return as visiting faculty or to interview.",
+    "Outcome data fed back into admissions material and company negotiations."],
+  data:["ExaminationApplication","ExaminationAttempt","CertificateOfCompetency","ServiceObligation","AlumniRecord"],
+  dec:["First-attempt pass rate — the number that genuinely measures the institute.",
+    "Which entry cohorts produce the best outcomes, traced all the way back to admissions.",
+    "Which companies retain cadets and which lose them, which is a real input to agreement renewal."],
+  risk:["Contact lost at sign-off, so outcomes are never known.",
+    "Service obligation tracked by the company and the institute separately, with the two disagreeing.",
+    "Pass-rate claims made in marketing that the record cannot support."],
+  intl:"Certification may be sought from a different administration entirely, and the institute's role may end at the completion certificate." }
+];
+
+/* =========================== ROLE SURFACES =========================== */
+var SURFACES = [
+{ key:"institute", name:"Institute", colour:"solid",
+  one:"Runs the process, owns the record and carries the regulatory liability. Everything else is a view onto what the institute holds.",
+  subroles:[
+    ["Head of Institute","Approvals, exceptions, policy settings, inspection readiness. The only role that can override a blocking rule, and every override is logged with a reason."],
+    ["Admissions Officer","Applications, eligibility, interviews, medicals, merit, offers. Cannot see academic or sea-phase records of enrolled cadets."],
+    ["Registrar / Academics","Batches, timetable, assessments, results, examination applications, certificates. Cannot see fee or medical detail."],
+    ["Faculty","Attendance, assessment entry and marking, remarks, mentoring, resource library. Sees only their own subjects and mentees."],
+    ["Training Superintendent","Deployment, sea service, record books, mid-term and final assessment, completion certificates."],
+    ["Placement Officer","Companies, agreements, drives, consent, shortlists, offers. Sees profile and readiness data, not medical or fee detail."],
+    ["Document Controller","Verification queue, expiry monitoring, document requirement sets. Sees documents across all cadets, no marks."],
+    ["Accounts","Fee schedules, receipts, loans, refunds, ageing. No academic or medical access."],
+    ["Auditor / inspection","Read-only across registers with no ability to change anything. Exists so that an inspection never needs a staff login."]],
+  powers:[
+    "Define courses, batches, fee schedules, document requirement sets and competency frameworks.",
+    "Set every threshold the rule engines use, and see the effect of a change before committing it.",
+    "Admit, enrol, suspend, withdraw and reinstate a cadet, each as a logged state change with a reason.",
+    "Verify or reject any document, and demand a resubmission with a query attached.",
+    "Record attendance, assessments and remarks, and control which remarks a cadet can read.",
+    "Grant or revoke a company's access to a candidate pool, subject to cadet consent.",
+    "Assess a record book, hold a mid-term review and issue the completion certificate.",
+    "Override a blocking rule, with reason and signature captured.",
+    "Export any register for inspection or submission."],
+  never:[
+    "Cannot issue a certificate of competency, a seafarer identification number, a discharge certificate or a medical fitness certificate. These come from the administration and are recorded, never generated.",
+    "Cannot alter a company's own assessment of a cadet.",
+    "Cannot read a cadet's private notes to their mentor where the cadet has marked them confidential."] },
+
+{ key:"student", name:"Student", colour:"brass",
+  one:"A participant in their own file, not a subject of it. If the cadet cannot see it, they cannot act on it.",
+  subroles:[
+    ["Applicant","Pre-admission. Application, fee, test and interview slots, offer acceptance."],
+    ["Cadet — ashore","Enrolled, in the pre-sea phase. Attendance, marks, gaps, resources, placement readiness."],
+    ["Cadet — at sea","Signed on. Record book, watchkeeping hours, submissions, completion position."],
+    ["Cadet — post sea","Final assessment, certificate collection, examination application, alumni."]],
+  powers:[
+    "See every mark, with the maximum, the pass mark, the batch median and their own trend — never another cadet's name against a number.",
+    "See attendance by subject and session, with the shortfall stated in days, not only as a percentage.",
+    "See ranked weak areas with the evidence that produced them: which assessments, which items, which dates.",
+    "Work through resources attached to each weak area and mark progress.",
+    "See readiness against each company's published blueprint, and what specifically to improve for it.",
+    "Consent to, and withdraw consent from, each company that may see their profile.",
+    "Upload or link documents, see exactly why something was rejected, and resubmit.",
+    "Declare a sign-on, log watchkeeping hours and record-book progress, and upload evidence from sea.",
+    "See a live completion position against every certificate criterion, long before the final assessment.",
+    "Book an assessment appointment and a certificate collection appointment.",
+    "Raise a request or grievance with a tracked state, and see who holds it.",
+    "Read remarks that faculty have marked visible, and respond to them."],
+  never:[
+    "Cannot see another cadet's marks, remarks or documents — only anonymised cohort statistics.",
+    "Cannot see internal faculty remarks or placement deliberations.",
+    "Cannot edit a verified document, a recorded mark or a sea service record; they can only raise a correction request.",
+    "Cannot see a company's internal rating of them."] },
+
+{ key:"company", name:"Company", colour:"info",
+  one:"A window, never the whole house. A company sees candidates who have consented to that company, and cadets it sponsors.",
+  subroles:[
+    ["Crewing / recruitment","Candidate pool, drives, shortlists, assessments, offers."],
+    ["Company Training Officer","Sponsored cadets' onboard progress, record-book oversight, quarterly submissions."],
+    ["Fleet personnel","Berth requisitions, joining logistics, sign-on and sign-off confirmation."],
+    ["Company administrator","Manages their own users and contacts. No access to institute configuration."]],
+  powers:[
+    "Publish berth requisitions with rank, vessel, joining port, date and contract length.",
+    "Browse the pool of candidates who have consented to this company, filtered to those the company is eligible to employ.",
+    "Run a drive: schedule rounds, record test scores and interview outcomes in their own workspace.",
+    "Shortlist, make an offer, and record acceptance or decline.",
+    "See the onboard progress of their sponsored cadets: record-book completion, watchkeeping hours, monthly reviews.",
+    "Confirm a sign-on and a sign-off, which is what makes the institute's sea service figure credible.",
+    "Submit quarterly training summaries and appraisals.",
+    "Give structured feedback on the cadets received, which the institute reads as a curriculum signal.",
+    "See their own agreement, intake capacity and placement history with this institute."],
+  never:[
+    "Cannot see candidates who have not consented to them.",
+    "Cannot see another company's offers, assessments, requisitions or feedback.",
+    "Cannot see fee records, loan status or any financial information about a cadet.",
+    "Cannot see medical detail beyond a fitness status and its validity date.",
+    "Cannot see internal faculty remarks or disciplinary records unless the institute has explicitly disclosed them.",
+    "Cannot see any data belonging to another institute on the platform."] }
+];
+
+/* =========================== PERMISSION MATRIX =========================== */
+/* R read · W create and edit · A approve or verify · — none · own = own records only */
+var MATRIX_COLS = ["Head","Admissions","Registrar","Faculty","Workshop","Trg Supt","Placement","Doc Ctrl","Accounts","Cadet","Company"];
+var MATRIX = [
+["Institute setup and configuration",     "W","—","R","—","—","R","—","—","—","—","—"],
+["Course approval and intake cap",        "W","R","R","—","—","R","R","—","—","—","—"],
+["Thresholds and rule settings",          "W","—","—","—","—","R","—","—","—","—","—"],
+["Users and roles",                       "W","—","—","—","—","—","—","—","—","—","own users"],
+["Help text and guidance content",        "W","—","R","—","—","—","—","—","—","—","—"],
+["Application and entrance scores",       "R","W","—","—","—","—","R","—","R","own","—"],
+["Interview scorecard",                   "R","W","—","—","—","—","R","—","—","—","—"],
+["Medical fitness status",                "R","W","R","—","—","R","R","A","—","own","status only"],
+["Medical detail and findings",           "R","R","—","—","—","—","—","—","—","own","—"],
+["Merit list and offer",                  "A","W","R","—","—","—","R","—","R","own","—"],
+["Fee ledger, loan, refund",              "R","R","—","—","—","—","—","—","W","own","—"],
+["Cadet master record",                   "R","R","W","R","R","R","R","R","R","own","consented"],
+["Guardian and standards records",        "R","W","W","—","—","R","—","R","—","own","—"],
+["Document submission and verification",  "R","R","R","—","—","R","R","A","—","own","own pack"],
+["Attendance",                            "R","—","R","W","W","R","R","—","—","own","—"],
+["Attendance amendment with reason",      "A","—","A","W","W","R","—","—","—","own","—"],
+["Assessment marks",                      "R","—","A","W","W","R","R","—","—","own","summary"],
+["Result set verification",               "A","—","A","—","—","R","—","—","—","—","—"],
+["Result set publication",                "A","—","A","—","—","R","—","—","—","—","—"],
+["Published result",                      "R","—","R","R","R","R","R","—","—","own","summary"],
+["Workshop station and rotation",         "R","—","R","R","W","R","—","—","—","own","—"],
+["Skill sheet and job card sign-off",     "R","—","R","R","A","R","R","—","—","own","—"],
+["Simulator run and assessment",          "R","—","R","R","W","R","R","—","—","own","—"],
+["Merit and demerit record",              "R","—","R","W","W","R","—","—","—","own","—"],
+["Disciplinary case",                     "A","—","R","—","R","R","—","—","—","own","—"],
+["Extra-curricular record",               "R","—","R","W","W","R","R","—","—","own","—"],
+["Remark — cadet visible",                "R","—","R","W","W","R","R","—","—","own","—"],
+["Remark — internal",                     "R","—","R","W","W","R","—","—","—","—","—"],
+["Competency scores and gaps",            "R","—","R","R","R","R","R","—","—","own","—"],
+["Soft-skill observations",               "R","—","R","W","W","R","R","—","—","own","—"],
+["Readiness score and blueprint",         "R","—","—","R","—","—","W","—","—","own","own blueprint"],
+["Consent grant to a company",            "R","—","—","—","—","—","R","—","—","W","own"],
+["Candidate profile release",             "R","—","—","—","—","—","A","—","—","own","consented"],
+["Company record and relationship type",  "A","—","—","—","—","R","W","—","R","—","own"],
+["Berth commitment register",             "R","—","—","—","—","R","W","—","—","—","own"],
+["Unsponsored cadet pool",                "R","—","R","—","—","R","W","—","—","—","—"],
+["Company drive and shortlist",           "R","—","—","—","—","—","W","—","—","own","W"],
+["Company assessment of a cadet",         "R","—","—","—","—","—","R","—","—","—","W"],
+["Offer and sponsorship",                 "A","R","R","—","—","R","W","—","R","own","W"],
+["Cadet decision on an offer",            "R","—","—","—","—","R","R","—","—","W","R"],
+["Berth requisition",                     "R","—","—","—","—","R","R","—","—","—","W"],
+["Deployment and pre-joining",            "R","—","—","—","—","W","R","R","—","own","R"],
+["Sign-on and sign-off",                  "R","—","—","—","—","A","—","—","—","W","A"],
+["Per-vessel service record",             "R","—","R","—","—","A","R","—","—","own","own cadets"],
+["Sea service record",                    "R","—","R","—","—","A","R","—","—","own","own cadets"],
+["Record-book task sign-off",             "R","—","—","—","—","A","—","—","—","W","W"],
+["Watchkeeping hours",                    "R","—","—","—","—","A","—","—","—","W","A"],
+["Distance learning status",               "R","—","R","—","—","W","R","—","—","own","own cadets"],
+["Mid-term review",                       "R","—","—","—","—","W","—","—","—","own","R"],
+["Completion evaluation",                 "R","—","R","—","—","W","R","—","—","own","—"],
+["Completion certificate",                "A","—","R","—","—","W","R","—","—","own","R"],
+["Examination application",               "R","—","W","—","—","R","—","R","—","own","—"],
+["Certificate of competency record",      "R","—","W","—","—","R","R","—","—","own","own cadets"],
+["Service obligation",                    "R","—","R","—","—","R","R","—","R","own","own cadets"],
+["Spreadsheet import, per target entity", "W","W","W","—","—","W","W","W","W","—","—"],
+["Delete and restore",                    "A","—","W","—","—","W","W","—","—","—","—"],
+["Statutory registers",                   "R","R","R","—","—","R","R","R","R","—","—"],
+["Fees charged to cadets register",       "R","—","—","—","—","—","—","—","R","—","—"],
+["Inspection export",                     "R","—","R","—","—","R","R","R","R","—","—"],
+["Read and disclosure log",               "R","—","—","—","—","R","—","—","—","own","—"],
+["Audit trail",                           "R","—","—","—","—","—","—","—","—","—","—"]
+];
+
+/* =========================== FEATURE CATALOGUE =========================== */
+/* [id, module, feature, surface, phase, priority] */
+var MODULES = ["Setup & configuration","Identity & access","Records layer","Import & migration",
+  "Admissions","Cadet registry","Documents","Fees","Academics","Workshop & conduct",
+  "Competency & gaps","Student app","Placement","Company portal","Deployment","Sea service",
+  "Completion & certificates","Registers & compliance","Faculty & resources","Help & guidance",
+  "Analytics","Platform"];
+
+var FEATURES = [
+["F01","Identity & access","Role and sub-role definition with scoped permissions","Institute",0,"Must"],
+["F02","Identity & access","Single sign-on for staff, separate credential store for cadets and companies","All",0,"Must"],
+["F03","Identity & access","Company workspace isolation — hard tenancy boundary between companies","Company",0,"Must"],
+["F04","Identity & access","Multi-institute tenancy with per-institute configuration","Institute",8,"Should"],
+["F05","Identity & access","Audit trail on every state change: who, what, when, from what to what","All",0,"Must"],
+["F06","Identity & access","Override log — any blocking rule bypassed, with reason and signature","Institute",0,"Must"],
+["F07","Identity & access","Session policy, device record and forced sign-out","All",0,"Should"],
+["F08","Admissions","Public application form writing directly to the register","Student",1,"Must"],
+["F09","Admissions","Duplicate detection on mobile, email and identity number","Institute",1,"Must"],
+["F10","Admissions","Eligibility rule engine with reason codes per rejection","Institute",1,"Must"],
+["F11","Admissions","Entrance assessment with per-section scoring","Institute",1,"Must"],
+["F12","Admissions","External entrance test rank capture","Institute",1,"Should"],
+["F13","Admissions","Interview slot booking with panel assignment","All",1,"Must"],
+["F14","Admissions","Structured interview scorecard per competency","Institute",1,"Must"],
+["F15","Admissions","Approved medical examiner list and referral","Institute",1,"Must"],
+["F16","Admissions","Medical result capture with reason and re-examination date","Institute",1,"Must"],
+["F17","Admissions","Configurable weighted merit formula","Institute",1,"Must"],
+["F18","Admissions","Offer generation, validity and automatic lapse","All",1,"Must"],
+["F19","Admissions","Waitlist with logged automatic movement","Institute",1,"Should"],
+["F20","Admissions","Source and channel attribution with conversion reporting","Institute",2,"Should"],
+["F21","Admissions","Panel consistency analysis","Institute",7,"Later"],
+["F22","Cadet registry","Single cadet record linked to every module","All",1,"Must"],
+["F23","Cadet registry","Course, batch and cohort masters","Institute",1,"Must"],
+["F24","Cadet registry","Cadet state machine with logged transitions","Institute",1,"Must"],
+["F25","Cadet registry","Identity number application tracking through to allotment","Institute",1,"Must"],
+["F26","Cadet registry","Induction, kit issue, hostel and identity card","Institute",2,"Should"],
+["F27","Cadet registry","Correction request workflow raised by the cadet","Student",3,"Should"],
+["F28","Documents","Requirement set generated by course and nationality","Institute",1,"Must"],
+["F29","Documents","Upload or external link, both entering one verification queue","All",1,"Must"],
+["F30","Documents","Verification workflow with query, resubmission and audit","Institute",1,"Must"],
+["F31","Documents","Verifier authority check — only an authorised role can verify","Institute",1,"Must"],
+["F32","Documents","Expiry monitoring with configurable lead times","Institute",1,"Must"],
+["F33","Documents","Forward validity check against an intended contract end date","Institute",5,"Must"],
+["F34","Documents","Document pack assembly by flag state and vessel type","Institute",5,"Should"],
+["F35","Documents","Bulk verification queue with filters by type and age","Institute",2,"Should"],
+["F36","Documents","Inspection export: complete document register with status","Institute",2,"Must"],
+["F37","Fees","Fee schedule per batch with instalments and due dates","Institute",1,"Must"],
+["F38","Fees","Receipt numbering and payment capture","Institute",1,"Must"],
+["F39","Fees","Sponsorship letter generated from the cadet record","All",1,"Should"],
+["F40","Fees","Education loan application tracking","All",2,"Should"],
+["F41","Fees","Ageing and outstanding balance reporting","Institute",2,"Must"],
+["F42","Fees","Refund and forfeiture applied as a policy setting","Institute",2,"Should"],
+["F43","Fees","Payment gateway integration","All",8,"Later"],
+["F44","Academics","Timetable and session scheduling","Institute",2,"Should"],
+["F45","Academics","Session-level attendance capture","Institute",2,"Must"],
+["F46","Academics","Attendance shortfall computation against a threshold","All",2,"Must"],
+["F47","Academics","Assessment definition with maximum, pass mark and type","Institute",2,"Must"],
+["F48","Academics","Mark entry with validation and locking after approval","Institute",2,"Must"],
+["F49","Academics","Competency tagging of every assessment item","Institute",2,"Must"],
+["F50","Academics","Faculty remark with visibility control","Institute",2,"Must"],
+["F51","Academics","Re-attempt scheduling and backlog tracking","All",2,"Must"],
+["F52","Academics","Semester and external examination result recording","Institute",2,"Must"],
+["F53","Academics","Learning-system account provisioning and deep link","All",2,"Should"],
+["F54","Competency & gaps","Competency framework per course with tagged areas","Institute",3,"Must"],
+["F55","Competency & gaps","Competency score computation with recency weighting","All",3,"Must"],
+["F56","Competency & gaps","Gap ranking with evidence trail to source assessments","All",3,"Must"],
+["F57","Competency & gaps","Four reference points: pass mark, cohort median, company benchmark, own trend","Student",3,"Must"],
+["F58","Competency & gaps","Nudge rule builder with thresholds, cadence and snooze","Institute",3,"Must"],
+["F59","Competency & gaps","Nudge delivery across in-app, email and message","All",3,"Must"],
+["F60","Competency & gaps","Nudge effectiveness measurement","Institute",7,"Should"],
+["F61","Competency & gaps","Resource library mapped to competency areas","All",3,"Must"],
+["F62","Competency & gaps","Soft-skill observation against behavioural markers","Institute",3,"Should"],
+["F63","Competency & gaps","Mentor allocation and conversation log","Institute",3,"Should"],
+["F64","Competency & gaps","Early-warning risk list ranked by severity","Institute",3,"Must"],
+["F65","Student app","Personal dashboard: position, next actions, deadlines","Student",3,"Must"],
+["F66","Student app","Marks and attendance with context, never raw numbers alone","Student",3,"Must"],
+["F67","Student app","Weak areas with evidence and attached resources","Student",3,"Must"],
+["F68","Student app","Document locker with rejection reasons and resubmission","Student",3,"Must"],
+["F69","Student app","Consent manager — grant and revoke per company","Student",4,"Must"],
+["F70","Student app","Readiness view per target company","Student",4,"Must"],
+["F71","Student app","Request and grievance desk with tracked states","Student",3,"Should"],
+["F72","Student app","Sea-phase companion: record book, hours, uploads, completion position","Student",5,"Must"],
+["F73","Student app","Appointment booking for assessment and certificate collection","Student",6,"Must"],
+["F74","Student app","Offline-tolerant entry for use at sea with poor connectivity","Student",6,"Should"],
+["F75","Placement","Company register with agreement status and validity","Institute",4,"Must"],
+["F76","Placement","Company test blueprint with weights and qualifying level","Institute",4,"Must"],
+["F77","Placement","Readiness scoring against a blueprint, with working shown","All",4,"Must"],
+["F78","Placement","Mock test built from a blueprint, feeding the gap engine","Student",4,"Should"],
+["F79","Placement","Interview preparation bank and recorded practice","Student",4,"Later"],
+["F80","Placement","Profile and CV assembled only from verified record data","All",4,"Must"],
+["F81","Placement","Drive scheduling with rounds and attendance","All",4,"Must"],
+["F82","Placement","Eligibility filter by nationality and flag restriction","All",4,"Must"],
+["F83","Placement","Placement outcome reporting by company and by cohort","Institute",7,"Should"],
+["F84","Company portal","Company workspace with its own users","Company",4,"Must"],
+["F85","Company portal","Consented candidate pool browsing","Company",4,"Must"],
+["F86","Company portal","Shortlist, assessment entry and interview outcome","Company",4,"Must"],
+["F87","Company portal","Offer issue, acceptance and decline with reason","Company",4,"Must"],
+["F88","Company portal","Berth requisition publishing","Company",5,"Must"],
+["F89","Company portal","Sponsored cadet progress view","Company",5,"Must"],
+["F90","Company portal","Sign-on and sign-off confirmation","Company",5,"Must"],
+["F91","Company portal","Quarterly training summary submission","Company",5,"Must"],
+["F92","Company portal","Structured feedback on cadets received","Company",6,"Should"],
+["F93","Deployment","Deployment screening rules with blocking and advisory findings","Institute",5,"Must"],
+["F94","Deployment","Berth matching with a transparent weighted score","Institute",5,"Should"],
+["F95","Deployment","Travel, visa and logistics tracking","All",5,"Should"],
+["F96","Deployment","Pre-joining briefing record with content version","All",5,"Must"],
+["F97","Deployment","Joining instruction issue and acknowledgement","All",5,"Must"],
+["F98","Sea service","Sign-on declaration and company confirmation","All",5,"Must"],
+["F99","Sea service","Sea service computation excluding join and sign-off days","All",5,"Must"],
+["F100","Sea service","Record-book task tracking by section and sub-task","All",5,"Must"],
+["F101","Sea service","Watchkeeping hour logs by type with separate thresholds","All",5,"Must"],
+["F102","Sea service","Monthly review and weekly check capture","All",5,"Must"],
+["F103","Sea service","Quarterly submission routed through the company","All",5,"Must"],
+["F104","Sea service","Project and activity workbook tracking","All",5,"Must"],
+["F105","Sea service","Ship-type task completion assessed per vessel type sailed","Institute",6,"Must"],
+["F106","Sea service","Phase schedule monitoring against elapsed sea service","All",6,"Should"],
+["F107","Sea service","Record-book loss, report and controlled re-issue","Institute",6,"Should"],
+["F108","Sea service","Testimonial raising and verification","All",5,"Must"],
+["F109","Completion & certificates","Live completion evaluation against every criterion","All",6,"Must"],
+["F110","Completion & certificates","Mid-term review scheduling, conduct and report","Institute",6,"Must"],
+["F111","Completion & certificates","Corrective action tracking from review findings","All",6,"Must"],
+["F112","Completion & certificates","Final submission checklist with item-level scrutiny","Institute",6,"Must"],
+["F113","Completion & certificates","Written and oral assessment scoring","Institute",6,"Must"],
+["F114","Completion & certificates","Certificate issue blocked unless every criterion passes","Institute",6,"Must"],
+["F115","Completion & certificates","Certificate templates with digital signature and verification code","Institute",6,"Must"],
+["F116","Completion & certificates","External endorsement tracking","Institute",6,"Should"],
+["F117","Completion & certificates","Public certificate verification by code","All",7,"Should"],
+["F118","Completion & certificates","Examination application pack assembly","All",7,"Should"],
+["F119","Faculty & resources","Faculty register with qualification and capacity","Institute",2,"Must"],
+["F120","Faculty & resources","Teaching load and utilisation reporting","Institute",2,"Should"],
+["F121","Faculty & resources","Assessment marking workload distribution","Institute",7,"Later"],
+["F122","Faculty & resources","Resource library with review dates and owners","Institute",3,"Should"],
+["F123","Faculty & resources","Feedback collection on faculty, course and infrastructure","All",7,"Should"],
+["F124","Analytics","Institute command view across the whole journey","Institute",7,"Must"],
+["F125","Analytics","Cohort comparison and trend reporting","Institute",7,"Should"],
+["F126","Analytics","Admission-to-outcome traceability","Institute",7,"Later"],
+["F127","Analytics","Company relationship scorecard","Institute",7,"Should"],
+["F128","Analytics","Inspection readiness dashboard","Institute",7,"Must"],
+["F129","Analytics","Register exports in prescribed formats","Institute",2,"Must"],
+["F130","Platform","Notification service across channels with preference control","All",0,"Must"],
+["F131","Platform","File store with virus scanning and retention policy","All",0,"Must"],
+["F132","Platform","External link ingestion with permission validation","All",1,"Should"],
+["F133","Platform","Configuration console for thresholds and rule settings","Institute",0,"Must"],
+["F134","Platform","Data export and restore for the whole tenant","Institute",2,"Should"],
+["F135","Platform","Scheduled job framework for windows, expiries and reminders","All",0,"Must"],
+["F136","Platform","Localisation and multi-currency","All",8,"Later"],
+["F137","Setup & configuration","Guided setup checklist, every step counted from records and never ticked by hand","Institute",0,"Must"],
+["F138","Setup & configuration","Institute profile, approval reference, address and contacts","Institute",0,"Must"],
+["F139","Setup & configuration","Course approval with intake cap and validity, enforced at the moment of enrolment","Institute",1,"Must"],
+["F140","Setup & configuration","Programme, academic year, term and subject configuration","Institute",1,"Must"],
+["F141","Setup & configuration","Assessment blueprint and pass thresholds per programme","Institute",2,"Must"],
+["F142","Setup & configuration","Grading scale whose bands cover every mark with no gap and no overlap","Institute",2,"Must"],
+["F143","Setup & configuration","Document checklist per stage, and certificate types","Institute",1,"Must"],
+["F144","Setup & configuration","Document templates — offer, sponsorship letter, transcript","Institute",2,"Should"],
+["F145","Setup & configuration","Notification rules: who is told when something falls due","Institute",2,"Should"],
+["F146","Setup & configuration","Roll-number series per batch, with a refusal when a batch has none","Institute",1,"Must"],
+["F147","Setup & configuration","Institute-owned master lists: vessel types, ranks, ports","Institute",1,"Must"],
+["F148","Setup & configuration","Editable role templates rather than fixed roles","Institute",0,"Must"],
+["F149","Setup & configuration","Demonstration data removed in one action","Institute",1,"Must"],
+["F150","Setup & configuration","Sign-off that separates what blocks enrolment from what blocks grading","Institute",1,"Must"],
+["F151","Records layer","Declarative entity definitions driving list, form, validation, import and help from one place","Institute",0,"Must"],
+["F152","Records layer","Soft delete with a reason, refusal naming the dependants, and restore","All",0,"Must"],
+["F153","Records layer","Effective date and recorded date on every dated record","All",0,"Must"],
+["F154","Records layer","Audit log append-only at the database, not only in the application","All",0,"Must"],
+["F155","Records layer","Read and disclosure log on every cadet file","All",0,"Must"],
+["F156","Records layer","Row-level security per institute at the database","Institute",0,"Must"],
+["F157","Records layer","Served vocabulary — every list of states defined once, on the server","All",0,"Must"],
+["F158","Import & migration","Import template generated from the entity definition","All",1,"Must"],
+["F159","Import & migration","Import validated through the same rules the form uses","All",1,"Must"],
+["F160","Import & migration","Partial acceptance with a per-row report of what was refused and why","All",1,"Must"],
+["F161","Import & migration","Duplicate detection on the entity natural key, with skip or update","All",1,"Must"],
+["F162","Import & migration","Rollback window on a committed import","All",1,"Must"],
+["F163","Import & migration","Rules can see rows accepted earlier in the same file","Institute",1,"Must"],
+["F164","Import & migration","Historical migration from the spreadsheets and drives in use today","Institute",2,"Should"],
+["F165","Workshop & conduct","Workshop stations and simulator scenarios with capacity and instructor","Institute",2,"Must"],
+["F166","Workshop & conduct","Rotation timetable across stations","Institute",2,"Should"],
+["F167","Workshop & conduct","Skill sheets and job cards signed per cadet, per station, with the date","Institute",2,"Must"],
+["F168","Workshop & conduct","Simulator run recorded with scenario version and assessment","Institute",2,"Should"],
+["F169","Workshop & conduct","Workshop instructor login scoped to their own stations","Institute",2,"Must"],
+["F170","Workshop & conduct","Merit and demerit records tied to an observed incident","Institute",3,"Should"],
+["F171","Workshop & conduct","Disciplinary case with stages, hearing record and outcome","Institute",3,"Must"],
+["F172","Workshop & conduct","Remarks by role: course coordinator, head of department, dean, principal, workshop instructor","Institute",2,"Must"],
+["F173","Workshop & conduct","Extra-curricular and sports participation record","Institute",3,"Should"],
+["F174","Registers & compliance","The ten statutory registers, each generated on demand","Institute",2,"Must"],
+["F175","Registers & compliance","Register export to CSV and to paginated PDF with institute, date and page numbers","Institute",2,"Must"],
+["F176","Registers & compliance","Register of fees charged to cadets — nil by construction","Institute",0,"Must"],
+["F177","Registers & compliance","Read-only inspection role with time-boxed access","Institute",2,"Must"],
+["F178","Registers & compliance","Circular and regulatory change register, linked to the settings each affects","Institute",7,"Should"],
+["F179","Registers & compliance","Threshold register — every regulatory figure with its source, owner and review date","Institute",6,"Must"],
+["F180","Academics","Result set state machine: draft, verified, published, revised","Institute",2,"Must"],
+["F181","Academics","Verification refused for anyone who entered a mark in the set","Institute",2,"Must"],
+["F182","Academics","A published result stores the rule values used, so a grade recomputes years later","Institute",2,"Must"],
+["F183","Academics","Attendance amendment with a reason, never a silent correction","Institute",2,"Must"],
+["F184","Analytics","Component heat map across a batch","Institute",7,"Should"],
+["F185","Analytics","Anonymous cadet feedback on faculty, released only above a response floor","All",7,"Should"],
+["F186","Cadet registry","Cadet photograph and specimen signature","All",1,"Must"],
+["F187","Cadet registry","Statutory identifiers: seafarer identification, discharge book, passport, identity document","All",1,"Must"],
+["F188","Cadet registry","Guardian records with relationship and contact","All",1,"Must"],
+["F189","Cadet registry","Physical and language standards records","Institute",1,"Should"],
+["F190","Cadet registry","Prior education history","All",1,"Should"],
+["F191","Placement","Unsponsored cadet pool with its own view and its own targets","Institute",4,"Must"],
+["F192","Placement","Relationship type per company: agreement, informal, one-off, prospect, ended","Institute",4,"Must"],
+["F193","Placement","Berth commitment register with renewal lead-time alerting","Institute",4,"Must"],
+["F194","Student app","Cadet accepts or declines an offer from their own login, with staff able to record a decision taken offline","Student",4,"Must"],
+["F195","Sea service","Distance learning programme enrolment and progress, run alongside sea service","All",5,"Must"],
+["F196","Sea service","Per-vessel service records — first ship, second ship and beyond","All",5,"Must"],
+["F197","Completion & certificates","Shipboard training completion certificate issue","Institute",6,"Must"],
+["F198","Help & guidance","Field-level help as data on the definition, driving tooltip, hint and walkthrough from one string","All",0,"Must"],
+["F199","Help & guidance","Screen walkthroughs","All",1,"Should"],
+["F200","Help & guidance","Getting-started guide counted from the database","Institute",1,"Must"],
+["F201","Help & guidance","A page of what is built but not yet open, with a request button on each item","All",3,"Should"],
+["F202","Analytics","Cadet journey index with versioned weights and drill-down to the officer who entered each input","Institute",7,"Should"],
+["F203","Platform","Cross-institute cadet exchange with consent and access licensing — held pending legal advice","All",8,"Later"]
+];
+
+/* =========================== ENGINES =========================== */
+var ENGINES = [
+{ id:"E1", name:"Admission eligibility", when:"On application submission and on any edit to a qualifying field",
+  why:"Two officers should reach the same answer on the same file, and a rejected parent should get a reason rather than an opinion.",
+  out:"Eligible · Referred · Not eligible, each with the reason codes that produced it",
+  rules:[
+    ["A1","Age within the course window","age(dob, course.startDate) between course.ageFrom and course.ageTo","Computed at the course start date, not at application date — this catches the candidate who turns ineligible between the two."],
+    ["A2","Qualifying aggregate met","aggregatePct >= course.minAggregate","Subject combination checked separately so a shortfall names the subject."],
+    ["A3","Language mark met","englishPct >= course.minEnglish","Replaced by a proficiency test result for candidates assessed on that basis."],
+    ["A4","Board on the accepted list","board in course.acceptedBoards","Boards outside the list route to referral rather than rejection."],
+    ["A5","Excluded pathway not used","board not in course.excludedPathways","Distance and open-schooling exclusions live here as data."],
+    ["A6","Entrance assessment cleared","onlineScore >= course.minTestScore","Section minima applied where the course declares them."],
+    ["A7","External entrance rank present where required","course.requiresExternalTest implies externalRank is not null",""],
+    ["A8","Medical fitness recorded as fit","medical.status = 'Fit'","Temporarily unfit holds the file open with a re-examination date rather than closing it."],
+    ["A9","Marksheet evidence submitted","document('qualifying marksheet').status = 'Verified'","Provisional results allow a conditional offer, flagged as such."]]},
+
+{ id:"E2", name:"Deployment screening", when:"Before a cadet is put forward for a berth, and again before release",
+  why:"The second run matters more than the first: a document valid at allotment can expire before the contract ends.",
+  out:"Clear · Clear with advisories · Documents pending · Medical pending · Not eligible",
+  rules:[
+    ["D1","Ashore phase complete","batch.endDate <= today","Blocking."],
+    ["D2","Attendance at or above the minimum","attendancePct >= settings.minAttendance","Blocking. Stated to the cadet in days short, not only as a percentage."],
+    ["D3","Academic aggregate met","aggregatePct >= settings.minAggregate","Blocking."],
+    ["D4","No open re-attempt","count(assessments where result = 'Re-attempt') = 0","Blocking."],
+    ["D5","All mandatory short courses issued","count(modules where status = 'Issued') = course.mandatoryModuleCount","Blocking."],
+    ["D6","Seafarer identification number recorded","cadet.identityNumber is not empty","Blocking."],
+    ["D7","Discharge certificate recorded","cadet.dischargeCertNo is not empty","Blocking."],
+    ["D8","Passport valid through the contract","passportExpiry >= contractEnd + settings.docBuffer","Blocking. This is the forward check, not a check against today."],
+    ["D9","Medical valid through the contract","medicalExpiry >= contractEnd","Blocking where the flag requires cover for the full period; advisory otherwise."],
+    ["D10","No document outstanding","count(documents where status = 'Not submitted') = 0","Blocking."],
+    ["D11","Fee account clear","feeBalance = 0","Advisory by default; institutes may set it blocking."],
+    ["D12","Sponsor holds a current agreement","company.agreementStatus = 'Active'","Advisory."],
+    ["D13","Nationality permitted on the flag","cadet.nationality in vessel.flag.permittedNationalities","Blocking where it applies at all."]]},
+
+{ id:"E3", name:"Competency and gap", when:"On every mark entry, and nightly for trend recomputation",
+  why:"A mark tells a cadet they did badly. A gap tells them what to do on Tuesday.",
+  out:"A ranked list of weak areas, each with a figure, a reference point and the evidence behind it",
+  rules:[
+    ["G1","Score per competency area","weightedMean(items tagged area, weight = recency × assessmentWeight)","Recent work counts for more; an early failure recovered from should not follow a cadet forever."],
+    ["G2","Reference set","{ passMark, cohortMedian, companyBenchmark, ownTrend }","Four reference points, because one number alone is not interpretable."],
+    ["G3","Gap value","max(0, reference − score) for the active reference","The active reference is the cadet's own choice of target, defaulting to the pass mark."],
+    ["G4","Ranking","order by gap × areaWeight × assessmentDensity","Density guards against ranking an area assessed once above an area assessed ten times."],
+    ["G5","Evidence trail","every contributing item, its date, its mark and its maximum","Shown with the gap. A gap without evidence gets argued with."],
+    ["G6","Confidence flag","areas with fewer than settings.minItems are marked provisional","Prevents a single bad practical from dominating the list."],
+    ["G7","Trend","slope over the last settings.trendWindow assessments in the area","Improving, flat or declining, stated as a direction rather than a number."]]},
+
+{ id:"E4", name:"Nudge", when:"Scheduled evaluation, with immediate firing on threshold-crossing events",
+  why:"Information nobody acts on is decoration. A nudge names the action, carries a deadline and escalates if ignored.",
+  out:"A delivered message to the cadet, with an escalation to the mentor when it goes unanswered",
+  rules:[
+    ["N1","Trigger","a declared condition on a metric — attendance, gap, document expiry, phase schedule, submission due",""],
+    ["N2","Audience","the cadet, the mentor, or both, declared per rule",""],
+    ["N3","Content","what is wrong, what to do, by when, and the one link that does it","A nudge that only reports a problem is a complaint."],
+    ["N4","Cadence","minimum interval between repeats of the same rule for the same cadet","The single most important setting. Too frequent and every nudge is ignored."],
+    ["N5","Snooze","the cadet may defer once, which is recorded","A deferral that is tracked is more useful than a nudge that is silently dismissed."],
+    ["N6","Escalation","unanswered after settings.escalateAfter, the mentor is notified",""],
+    ["N7","Suppression","no nudge fires while a related correction request is open","Prevents the system badgering a cadet about something already reported."],
+    ["N8","Effectiveness","the metric that triggered the nudge is re-measured after a set interval","This is what tells you whether the nudges work at all."]]},
+
+{ id:"E5", name:"Benchmark and readiness", when:"On demand, and refreshed when a blueprint or a competency score changes",
+  why:"'Prepare well for the company test' is not advice. 'You are eleven points short on cargo work for this company' is.",
+  out:"A readiness percentage per company with the contribution of each area shown",
+  rules:[
+    ["B1","Blueprint","per company: areas, weights, format, duration, historical qualifying level","Maintained by the placement officer with a review date and a named owner."],
+    ["B2","Readiness","sum over areas of ( min(score / blueprintTarget, 1) × weight )","Capped per area so strength in one area cannot mask a failure in another."],
+    ["B3","Qualifying likelihood","readiness compared with the qualifying level of past attempts","Expressed as a band, never as a probability — the sample is too small to claim more."],
+    ["B4","Contribution view","each area's points gained against points available","This is what turns a score into a study plan."],
+    ["B5","Eligibility pre-filter","nationality, flag and course restrictions applied before scoring","A perfect readiness score against a company that cannot employ the cadet is worse than no score."],
+    ["B6","Blueprint staleness","flagged when past its review date","A stale benchmark quietly misleads a whole cohort."]]},
+
+{ id:"E6", name:"Shipboard training completion", when:"Continuously during the sea phase; formally at mid-term and at final assessment",
+  why:"This is the engine that protects the institute. A completion certificate issued on an incomplete file is the most damaging error available, and these criteria are what make the decision defensible.",
+  out:"Per-criterion met or short, with the figure and the shortfall, visible to the cadet throughout the sea phase",
+  note:"The figures below follow the published structured shipboard training guidelines for the deck pathway. Every one is held as a setting, because they differ by course, by pathway and by circular revision. Confirm each against the current circular for the course before go-live, and record the circular reference against the setting.",
+  rules:[
+    ["C1","Sea service","seaDays >= 18 months","Joining and sign-off days are not counted. This single exclusion is the most common cause of a file falling short by a few days."],
+    ["C2","Record-book tasks","proficientTasks / totalTasks >= 80%","Proficiency is the assessing officer's decision, not simply a completed entry."],
+    ["C3","Bridge watchkeeping","bridgeHours >= 720","Six months of watchkeeping, certified by the Master."],
+    ["C4","Port and cargo watchkeeping","cargoWatches >= 60 of 6 hours each","360 hours in total, logged as watches rather than as a running total."],
+    ["C5","Engine room watchkeeping","engineHours >= 20",""],
+    ["C6","Steering","steeringHours >= 40, including a Master's test","The test is a separate flag, not an assumption from the hours."],
+    ["C7","Ship-type tasks","for each ship type sailed: typeTasksProficient >= 80%","Assessed per type, with a pro-rata allowance for short periods on a type."],
+    ["C8","Generic projects","all generic projects complete","100%, not 80%."],
+    ["C9","Ship-type projects","all projects complete for each ship type sailed",""],
+    ["C10","Activity workbook","completedItems >= 80%",""],
+    ["C11","Supplementary workbook","completedItems >= 80% where the course requires one",""],
+    ["C12","Monthly reviews","every month of service carries a signed Master's review","A missing month is a gap in the evidence chain, not a formality."],
+    ["C13","Mid-term review","held between 6 and 12 months of service, report issued","Blocking at final assessment if never held."],
+    ["C14","Final assessment","written and oral assessment conducted and passed",""],
+    ["C15","Sea service confirmed","each period confirmed by the employing company","The institute's figure must agree with the company's."]]},
+
+{ id:"E7", name:"Document verification and expiry", when:"On submission, on verification, and daily for expiry",
+  why:"This is what replaces the shared drive. A file in a folder has no owner, no state and no expiry.",
+  out:"A verification queue with an owner on every item, and an expiry watchlist with lead times",
+  rules:[
+    ["V1","Requirement set","generated per cadet from course and nationality","The cadet sees only what applies to them."],
+    ["V2","Intake","an uploaded file or an external link; a link is validated for read access at submission","A link that works today and breaks tomorrow is the classic failure, so the link is re-checked on a schedule."],
+    ["V3","Authority","only a role with verification authority for that document type may verify","Recorded with the verifier's identity."],
+    ["V4","Query","a rejection must carry a reason the cadet can act on","'Rejected' alone generates a phone call."],
+    ["V5","Expiry watch","alert at each configured lead time before expiry","Lead times differ by document type."],
+    ["V6","Forward validity","for deployment, validity is checked to the contract end date","See D8."],
+    ["V7","Retention","documents retained per policy after completion, then disposed with a logged event","An inspection asks about disposal as well as about retention."]]},
+
+{ id:"E8", name:"Statutory registers", when:"On demand, one register at a time",
+  why:"The real test of an institute's system is whether it can hand an inspector a dated, complete register in a minute. Ten registers, generated from the live records, never maintained by hand alongside them.",
+  out:"A dated register on screen, as CSV, and as a paginated PDF carrying the institute's name and page numbers",
+  note:"Register numbering and content follow the set an inspector asks for. Confirm the current set and its headings against the circular in force before build, and record the reference against each register definition.",
+  rules:[
+    ["R1","Company enquiry and contact","entered by hand","One of only two registers with no source record elsewhere in the portal."],
+    ["R2","Campus drives","drives and their participants",""],
+    ["R3","Company and agreements","companies with relationship type, instrument and validity","Inspection item."],
+    ["R4","Sea-berth tie-ups","berth commitments against live sponsorships","Inspection item. Blank here means the berth commitment was never recorded as a field."],
+    ["R5","Sponsorship letters issued","every offer past draft",""],
+    ["R6","Placement records","sponsorships with the confirmed joining","Inspection item."],
+    ["R7","Cadet joining","confirmed joinings","Inspection item."],
+    ["R8","Correspondence","entered by hand",""],
+    ["R9","Complaints and grievances","the fact of a complaint and its state, never its content","The content stays with the institute. The register proves the complaint was received and handled."],
+    ["R10","Fees charged to cadets","nil by construction","There is no field anywhere in the product that can populate this register. If it can ever be non-empty, the product is unlawful. See non-negotiable 01."],
+    ["R11","Generation is per register","never all ten at page load","Ten registers generated at once is a page that hangs, which is exactly how an inspection goes badly."]]},
+
+{ id:"E9", name:"Delete, dependants and restore", when:"On any delete request",
+  why:"An institute that cannot correct a mistyped record will keep a second set of records outside the portal, and then the portal is not the record.",
+  out:"Deleted with a reason, or refused with the dependants named and counted",
+  rules:[
+    ["X1","Right","the actor holds delete on that entity","Delete is a separate right from edit, granted per entity."],
+    ["X2","Reason","mandatory, kept in the log","A delete with no reason is indistinguishable from an accident."],
+    ["X3","Dependants","refused while any other record references it; the refusal lists them with counts","'This batch still has 7 cadets and 2 drives' — not 'cannot delete'."],
+    ["X4","Flag, not removal","the row stays, marked deleted, with actor, reason and time",""],
+    ["X5","Restore","a separate transition with its own right and its own log entry","Never a silent reversal."],
+    ["X6","System-created links","anything the portal created itself — a cadet's login, an enquiry raised behind a one-step admission — must be removable through the same path","Otherwise the parent can never be deleted and a typo at admission becomes permanent. This is a real failure mode, not a hypothetical one."],
+    ["X7","Lists","deleted records hidden by default, visible under an explicit filter",""]]},
+
+{ id:"E10", name:"Spreadsheet import", when:"On upload, on preview and on commit",
+  why:"No institute will type in three years of history, and no integration arrives on time. Import is the primary path into the product, not the fallback.",
+  out:"An accepted set, a refused set with a reason on each row, and a commit that can be reversed",
+  rules:[
+    ["I1","Template","generated from the entity definition","So the template can never drift from the form."],
+    ["I2","Validation","the same binder and the same rules the form uses","One implementation. Two implementations diverge within a month."],
+    ["I3","Partial acceptance","good rows commit; bad rows return with the reason on the row","A file of three hundred rows rejected whole teaches people to stop using import."],
+    ["I4","Duplicates","detected on the entity's natural key, with skip or update chosen by the user",""],
+    ["I5","Pending rows","a rule evaluating a row can see the rows accepted earlier in the same file","Without this, two hundred cadets import cleanly into a batch with one seat."],
+    ["I6","Rights","create on the target entity, and edit where the file updates","Import must never be a route around a permission."],
+    ["I7","Rollback","reversible for a configured window; updated rows restore to their previous values","Deleting rows an import had only updated is the classic rollback bug."]]},
+
+{ id:"E11", name:"Result set", when:"On mark entry, verification, publication and revision",
+  why:"A published mark is a statement the institute will be asked to defend years later, after the thresholds behind it have changed. It has to be reproducible.",
+  out:"A result set in exactly one of draft, verified, published or revised, with its working preserved",
+  rules:[
+    ["S1","Mark bounds","0 <= mark <= component.maximum, with absent as a distinct value from zero","An absent cadet and a cadet who scored nothing are not the same thing."],
+    ["S2","Completeness","a set cannot be verified while any mark is missing; the missing ones are named by cadet",""],
+    ["S3","Segregation of duties","verification refused for anyone who entered a mark in the set","The single most important control in the academic record."],
+    ["S4","Publication","only a verified set publishes, and publication locks it",""],
+    ["S5","Rule values, not references","a published set stores the pass mark, subject minima, weights, bands and the roster as values","So the grade recomputes identically in five years, after every one of those settings has moved. Storing a reference to a mutable row is the bug that looks correct until it matters."],
+    ["S6","Revision","a correction is a new revision with a reason; the superseded revision stays and says so",""],
+    ["S7","Visibility","a cadet sees a result only once its set is published",""]]}
+];
+
+/* =========================== DATA MODEL =========================== */
+var ENTITY_GROUPS = [
+{ g:"Setup and configuration", e:[
+  ["EntityDefinition","The declaration that drives one entity's list, form, validation, import and help. Adding an entity is a definition, not a screen.","entity · fields[] · listColumns[] · searchFields[] · dependants[] · naturalKey · help"],
+  ["SetupStep","A step of the getting-started checklist, satisfied by records rather than by a tick.","stage · step · satisfiedBy · blocksEnrolment · blocksGrading"],
+  ["CourseApproval","The approval a batch is filled under, with its cap and validity.","programmeId · approvalNumber · intakeCap · issuedDate · validToDate"],
+  ["Programme / AcademicYear / Term","The academic shape of the institute.","code · name · durationMonths · terms[] · currentYear"],
+  ["AssessmentBlueprint","What each term is assessed on and out of what.","termId · components[] · maxima[] · weights[]"],
+  ["GradingScale","Bands covering every mark with no gap and no overlap.","programmeId · bands[] · from · to · grade"],
+  ["RollNumberSeries","How a batch numbers its cadets.","batchId · prefix · nextNumber · width"],
+  ["MasterList","Institute-owned vocabulary: vessel types, ranks, ports.","kind · values[] · editableBy"],
+  ["NotificationRule","Who is told when something falls due.","event · leadDays · audience · channel"],
+  ["DocumentTemplate","A letter the portal fills in — offer, sponsorship, transcript.","kind · body · mergeFields[]"],
+  ["ThresholdSetting","A regulatory figure with the circular it came from.","key · value · sourceRef · owner · reviewDate"]]},
+{ g:"Identity and platform", e:[
+  ["Institute","The tenant. Owns configuration, branding and every register below it.","code · name · approvalRef · settings"],
+  ["User","A staff account with one or more scoped roles.","name · email · roles[] · scope · active"],
+  ["CompanyUser","A company-side account, isolated to that company's workspace.","companyId · name · role · active"],
+  ["AuditEntry","Every state change on every record. Append-only in the application and at the database.","actor · entity · entityId · before · after · reason · address · correlationId · at"],
+  ["DisclosureEntry","Every read of a cadet's file: who looked, at what, under which consent.","actorId · cadetId · fieldGroups[] · consentId · at"],
+  ["ImportJob","One spreadsheet, its validation result and its reversible commit.","entity · fileRef · accepted · rejected[] · state · rollbackUntil"],
+  ["DeletionRecord","A soft delete, its reason and its restore.","entity · entityId · reason · deletedBy · restoredBy · at"]]},
+{ g:"Admissions", e:[
+  ["Candidate","A person before enrolment. Becomes a Cadet on admission; the identity does not change.","name · dob · nationality · contact · sourceChannel"],
+  ["Application","One attempt at one course and intake.","candidateId · courseId · targetBatch · stage · outcome"],
+  ["EligibilityCheck","The engine's verdict with reason codes.","applicationId · verdict · reasonCodes[] · evaluatedAt"],
+  ["TestAttempt","Entrance assessment with per-section scoring.","applicationId · sections[] · total · attemptNo"],
+  ["InterviewScore","Structured panel scorecard.","applicationId · panelId · competencyScores[] · recommendation"],
+  ["MedicalExamination","Fitness decision from an approved examiner.","candidateId · examinerId · status · reason · validTill · reExamDate"],
+  ["MeritEntry","Computed rank with the formula version used.","applicationId · score · rank · formulaVersion"],
+  ["Offer","Provisional offer with validity and outcome.","applicationId · issuedOn · validTill · status"]]},
+{ g:"Registry and academics", e:[
+  ["Cadet","The single record every other module points at.","candidateId · regNo · courseId · batchId · state"],
+  ["Course / Batch / Subject","Course masters, intakes and the syllabus beneath them.","code · duration · seats · affiliation · competencyFramework"],
+  ["Session","A scheduled instructional period.","subjectId · batchId · facultyId · startsAt"],
+  ["AttendanceRecord","Presence at a session.","cadetId · sessionId · status · reason"],
+  ["Assessment / AssessmentItem","A test and the items within it; items carry the competency tags.","subjectId · type · maxMarks · passMark · items[]"],
+  ["Mark","One cadet's result on one item or assessment.","cadetId · assessmentId · itemId · score · result"],
+  ["CadetRemark","An observation by a named role — coordinator, head of department, dean, principal, workshop instructor, faculty — with a visibility setting.","cadetId · authorId · authorRole · text · visibility · at"],
+  ["ResultSet","One term's marks for one batch, in exactly one state, with its revision history.","batchId · termId · revision · state · enteredBy[] · verifiedBy · ruleValues"],
+  ["AttendanceAmendment","A correction to a recorded attendance, with its reason.","attendanceId · from · to · reason · by · effectiveOn · recordedOn"]]},
+{ g:"Workshop and conduct", e:[
+  ["WorkshopStation / SimulatorScenario","The practical resources, with capacity and an instructor.","name · capacity · instructorId · scenarioVersion"],
+  ["RotationSlot","A cadet at a station in a period.","cadetId · stationId · from · to"],
+  ["SkillSheet / JobCard","Signed off per cadet, per station, with the date and the instructor.","cadetId · stationId · items[] · signedBy · signedOn"],
+  ["SimulatorRun","One run, its scenario version, score and assessment.","cadetId · scenarioId · version · score · assessorId"],
+  ["MeritRecord / DemeritRecord","A point awarded or deducted, tied to an observed incident.","cadetId · points · incident · observerId · at"],
+  ["DisciplinaryCase","Stages, hearing and outcome. Disclosable to nobody outside the institute.","cadetId · opened · stage · hearingRef · outcome · closed"],
+  ["ExtraCurricularRecord","Sport, cultural and institute activity.","cadetId · activity · level · achievement · at"]]},
+{ g:"Competency and engagement", e:[
+  ["Competency","A tagged area within a course framework.","frameworkId · code · name · weight"],
+  ["CompetencyScore","Computed standing per area, with its inputs.","cadetId · competencyId · score · trend · confidence"],
+  ["GapFinding","A ranked weakness with its evidence.","cadetId · competencyId · gap · reference · evidence[]"],
+  ["NudgeRule / NudgeEvent","The rule and each firing of it.","condition · audience · cadence · escalateAfter"],
+  ["Resource","A learning item mapped to competency areas.","title · url · competencies[] · owner · reviewDate"],
+  ["SoftSkillObservation","A behavioural marker rating tied to a situation.","cadetId · marker · rating · situation · observerId"],
+  ["MentorLog","A recorded conversation.","cadetId · mentorId · summary · actions[] · at"]]},
+{ g:"Documents and finance", e:[
+  ["DocumentRequirement","What this cadet must produce, by course and nationality.","courseId · nationality · docType · mandatory · leadTimes[]"],
+  ["DocumentSubmission","The file or link, and its verification state.","cadetId · docType · fileRef · linkRef · number · expiry · state"],
+  ["VerificationEvent","Each check, query or clearance.","submissionId · actorId · action · reason · at"],
+  ["FeeSchedule / Instalment / Receipt","What is owed, when, and what was received.","batchId · total · instalments[] · dueDates[]"],
+  ["LoanApplication","Education loan progress.","cadetId · bank · amount · stage · sanctionedOn"]]},
+{ g:"Placement and companies", e:[
+  ["Company","A recruiter or operator on the platform.","name · type · contacts[] · permittedFlags[]"],
+  ["Agreement","The arrangement with this institute. The relationship type decides whether an instrument is needed at all.","companyId · relationshipType · instrumentRef · status · validTill · renewalLeadDays"],
+  ["BerthCommitment","Berths promised under an agreement, against berths filled.","agreementId · committed · filled · rank · from · to"],
+  ["TestBlueprint","What a company assesses and how it weights it.","companyId · areas[] · weights[] · qualifyingLevel · reviewDate"],
+  ["ReadinessScore","A cadet's standing against one blueprint.","cadetId · blueprintId · score · contributions[]"],
+  ["ConsentGrant","The cadet's permission for one company to see their profile.","cadetId · companyId · grantedAt · revokedAt · scope"],
+  ["Drive / Shortlist / CompanyAssessment","The campus process and its outcomes.","companyId · batchId · rounds[] · results[]"],
+  ["Sponsorship","Which company backs this cadet, and on what terms.","cadetId · companyId · from · obligationMonths"]]},
+{ g:"Sea phase", e:[
+  ["Requisition","A berth the company needs filled.","companyId · vesselId · rank · berths · availableFrom"],
+  ["Deployment","The allotment and everything before joining.","cadetId · vesselId · rank · offer · travel · visa · briefing"],
+  ["SignOn / SeaServiceRecord","The period served, confirmed by the company.","deploymentId · signOn · signOff · days · confirmedBy"],
+  ["RecordBookTask","One task, its assessment and its sign-off.","cadetId · sectionId · task · proficient · assessorRank · at"],
+  ["WatchkeepingLog","Hours by type, certified.","cadetId · type · hours · watches · certifiedBy · period"],
+  ["MonthlyReview / QuarterlySubmission","The evidence chain from ship to institute.","cadetId · period · signedBy · routedVia · receivedAt"],
+  ["Project / ActivityWorkbookItem","Deliverables with their own completion rules.","cadetId · kind · shipType · status · assessedOn"],
+  ["VesselService","One ship served on — first, second and beyond. Ship-type requirements are assessed per type sailed.","cadetId · vesselId · flag · type · rank · signOn · signOff · companyId"],
+  ["DistanceLearningRecord","The distance learning programme that runs alongside sea service.","cadetId · programme · enrolledOn · modulesDone · status"],
+  ["Testimonial","The company's certificate of the service given.","seaServiceId · number · issuedOn · verified"]]},
+{ g:"Completion and outcome", e:[
+  ["MidTermReview","The halfway checkpoint and its findings.","cadetId · heldOn · mode · findings[] · reportRef"],
+  ["CompletionEvaluation","Every criterion, its figure and its verdict.","cadetId · criteria[] · evaluatedAt · overall"],
+  ["FinalAssessment","Written and oral scores at the institute.","cadetId · writtenScore · oralScore · assessorId · result"],
+  ["Certificate","What the institute issues, with its signature and verification code.","cadetId · templateId · number · issuedOn · signatureMode · verifyCode"],
+  ["Endorsement","External endorsement of the certificate.","certificateId · authority · sentOn · returnedOn"],
+  ["ExaminationApplication / Attempt","The pathway to competency certification.","cadetId · centre · appliedOn · attempts[] · result"],
+  ["CertificateOfCompetency","Recorded when the administration issues it. Never generated here.","cadetId · grade · number · issuedOn · validTill"],
+  ["ServiceObligation","The commitment to the sponsoring company.","cadetId · companyId · months · served · status"],
+  ["AlumniRecord","Where they went, and whether they will come back.","cadetId · employer · rank · updatedOn · willingToReturn"]]},
+{ g:"Registers and compliance", e:[
+  ["RegisterDefinition","One of the ten statutory registers: its columns, its source query and the circular it answers.","number · name · sourceEntity · columns[] · sourceRef · inspectionItem"],
+  ["RegisterRun","A generation of one register at a point in time.","registerId · generatedAt · rowCount · exportRef"],
+  ["CircularRecord","A regulatory change and the settings it affects.","reference · issuedOn · summary · affectsSettings[]"],
+  ["InspectionGrant","Read-only, time-boxed access for an inspection.","grantedTo · from · to · scope · grantedBy"]]}
+];
+
+/* ---- what is captured about a cadet ---- */
+var CADET_DATA = [
+["Identity","Full name as on the passport, name as on the school certificate where it differs, photograph, specimen signature, date and place of birth, gender, nationality, mother tongue, blood group.","At admission, by the admissions officer or by the cadet on the application form."],
+["Statutory identifiers","Seafarer identification number and its application state, continuous discharge certificate number, passport number with place and date of issue and expiry, seafarer identity document where it applies, national identifier where the institute is required to hold one.","At admission and as each is allotted. A government identifier is never shown to a company."],
+["Contact and family","Address, permanent address, personal email, mobile, emergency contact, and guardians with their relationship, occupation and contact.","At admission, maintained by the cadet from their own login."],
+["Prior education","School, board, year, subject marks and aggregate; any prior qualification, diploma or sea time.","At application, verified against the uploaded marksheet."],
+["Programme placement","Programme, batch, roll number issued from the batch series, registration number, academic year, intended passing-out period.","At enrolment. A batch with no roll-number series refuses the enrolment rather than issuing nothing."],
+["Fitness and standards","Medical fitness status, examiner, validity and re-examination date; eyesight and colour vision; physical standards; language proficiency.","At admission and on each renewal. A company sees a status and a date, never a finding."],
+["Documents","Every item on the checklist for this programme and nationality, each with its file or link, number, issue and expiry dates, verification state and verifier.","Uploaded by the cadet, verified by the document controller."],
+["Academic record","Attendance by session and subject; internal tests, practicals, semester examinations and re-attempts, each mark against its maximum with its component and competency tag; published result sets by term with grade and aggregate; backlog and re-attempt plan.","By faculty, through the result-set workflow."],
+["Practical record","Workshop stations covered and skill sheets signed; job cards; simulator runs with scenario version and assessment; sea-training exercises.","By the workshop and simulator instructors."],
+["Conduct and remarks","Merit and demerit points against observed incidents; disciplinary cases with their stage and outcome; remarks by course coordinator, head of department, dean, principal, workshop instructor and faculty, each with its own visibility; extra-curricular and sporting record.","By the role making the observation. Internal remarks and conduct never leave the institute."],
+["Competency standing","Score per competency area with its inputs and trend; ranked gaps with the evidence behind each; soft-skill observations; mentor conversations.","Computed, plus observations entered by the mentor."],
+["Placement","Consent grants per company with scope and revocation; drives attended; shortlists; company assessments; offers with the cadet's own decision and reason; sponsorship and its terms.","By the placement officer and the cadet."],
+["Deployment and sea service","Requisition and berth allotment; travel, visa and briefing; sign-on and sign-off per vessel with company, flag, ship type and rank; sea days computed; watchkeeping hours by type; record-book tasks and their sign-off; monthly reviews and quarterly submissions; projects and workbooks; testimonials.","By the cadet, the ship and the company, confirmed by the training superintendent."],
+["Completion and outcome","Distance learning progress; mid-term review and its findings; completion evaluation against every criterion; final assessment; shipboard training completion certificate; endorsement; examination applications and attempts; certificate of competency as recorded, never generated; service obligation; alumni record.","By the training superintendent and the registrar."]
+];
+
+
+
+var STATE_MACHINES = [
+{ n:"Candidate and cadet", s:["Enquiry","Applied","Screened","Interviewed","Medical cleared","Offered","Admitted","Enrolled","In training","Awaiting deployment","Onboard","On leave","Under assessment","Completed","Certified"],
+  term:["Completed","Certified"], bad:["Withdrawn","Not selected","Terminated"],
+  note:"Withdrawn, Not selected and Terminated can be reached from most states and always carry a reason. Reinstatement is a separate logged transition, never a silent reversal." },
+{ n:"Document submission", s:["Required","Submitted","Under check","Query raised","Resubmitted","Verified","Expiring","Expired"],
+  term:["Verified"], bad:["Expired","Rejected"],
+  note:"Verified is not final. Expiring and Expired are reached by the clock, not by a person, which is the whole point of holding documents in a system rather than a folder." },
+{ n:"Application", s:["Draft","Submitted","Fee received","Eligibility checked","Assessment taken","Interview scheduled","Interviewed","Medical done","On merit list","Offer issued","Accepted"],
+  term:["Accepted"], bad:["Not eligible","Not selected","Offer lapsed","Withdrawn"],
+  note:"Referred sits alongside Eligibility checked as a hold state awaiting a human decision." },
+{ n:"Deployment", s:["Requisition open","Matched","Offered","Accepted","Documents in progress","Travel arranged","Released","Onboard","Signed off"],
+  term:["Signed off"], bad:["Declined","Withdrawn","Failed screening"],
+  note:"Released is the point of no return and requires the screening engine to pass a second time, against the contract end date." },
+{ n:"Record-book task", s:["Not started","In progress","Submitted for assessment","Proficient"],
+  term:["Proficient"], bad:["Re-do advised"],
+  note:"Re-do advised returns to In progress and is counted separately in reporting, because a high re-do rate is a training signal." },
+{ n:"Completion certificate", s:["Criteria short","Criteria met","Assessment booked","Assessed","Issued","Endorsed","Collected"],
+  term:["Collected"], bad:["Assessment failed"],
+  note:"Issued cannot be reached from Criteria short by any role. An override here is the one case where the platform should refuse even the head of the institute." },
+{ n:"Result set", s:["Draft","Verified","Published","Revised"],
+  term:["Published"], bad:["Withdrawn"],
+  note:"Verification is refused for anyone who entered a mark in the set. Publication locks it and stores the rule values used, so the grade recomputes identically years later. A correction is a new revision with a reason; the superseded revision stays and says so." },
+{ n:"Company relationship", s:["Prospect","Informal","One-off","Formal agreement","Ended"],
+  term:["Formal agreement"], bad:["Ended"],
+  note:"Only a formal agreement needs an instrument. An informal company — one that simply visits, selects and takes cadets — gets a login, vacancies and offers like anyone else, and shows as an open arrangement rather than as a warning. It is excluded from berth-commitment reporting because there is no commitment to measure." },
+{ n:"Import job", s:["Uploaded","Validated","Committed","Rolled back"],
+  term:["Committed"], bad:["Failed","Rolled back"],
+  note:"Validated holds the accepted and refused sets; the user sees both before anything is written. A rollback restores updated rows to their previous values rather than deleting them, which is the bug most rollback implementations ship with." },
+{ n:"Record deletion", s:["Live","Delete requested","Deleted","Restored"],
+  term:["Live"], bad:["Deleted"],
+  note:"Delete requested is refused while any dependant exists, and the refusal names them with counts. Deleted is a flag, never a removal. Restore is a separate right and a separate log entry." },
+{ n:"Consent grant", s:["Not granted","Granted","Revoked"],
+  term:["Granted"], bad:["Revoked"],
+  note:"Revocation stops future access immediately. What a company already downloaded is beyond the platform's reach, which is why the scope of each grant is kept narrow." }
+];
+
+/* =========================== DECISIONS =========================== */
+var DECISIONS = [
+["Whom to admit","Head · Admissions","Merit score, eligibility verdict, interview scorecard, medical status","Merit list with the formula shown and tie-breaks declared","Per intake"],
+["Where to set the cut-off","Head","Past cohort outcomes by rank band, seat fill rate","Conversion by rank band against later performance","Per intake"],
+["Which channels to invest in","Head · Admissions","Source attribution through to admission and to outcome","Channel funnel with cost per admission","Quarterly"],
+["Who is at academic risk","Faculty · Registrar","Attendance trend, gap ranking, backlog count","Early-warning list ranked by severity, not alphabetically","Weekly"],
+["Which subject is failing the cohort","Registrar · Head","Pass rate and mean by subject against cohort history","Subject performance with delivery and faculty load alongside","Per term"],
+["Whether faculty load is sustainable","Head","Teaching hours against capacity, marking volume","Utilisation by faculty and department","Monthly"],
+["Who can be put forward to a company","Placement · Trg Supt","Screening verdict, readiness score, consent state","Candidate pool filtered by eligibility with blocking findings shown","Per drive"],
+["Which company to push for berths","Head · Placement","Berths provided against capacity, offers converted, feedback quality","Company scorecard with history","Quarterly"],
+["Whether to renew an agreement","Head","Intake honoured, cadet retention, feedback, payment behaviour","Agreement review with the relationship history on one page","Annually"],
+["What a cadet should study next","Cadet · Mentor","Ranked gaps with evidence, target company blueprint","Weak areas with attached resources and a next action","Continuous"],
+["Whether a cadet is ready for a company test","Cadet · Placement","Readiness score against that blueprint, mock results","Readiness view with the contribution of each area","Before each drive"],
+["Who to release to a berth this month","Trg Supt","Second-run screening against contract dates, document validity","Release queue with blocking findings per cadet","Monthly"],
+["Which cadet is drifting at sea","Trg Supt · Company","Phase schedule against elapsed sea service, task sign-off rate","Sea-phase watchlist with the company contact alongside","Monthly"],
+["Whether a record book will pass","Trg Supt","Live completion evaluation against all criteria","Completion position with each criterion and its shortfall","Continuous"],
+["Whether to issue a completion certificate","Trg Supt · Head","Every criterion, the final assessment result, the evidence chain","Issue screen that refuses to proceed on a short file","Per cadet"],
+["Whether the institute is inspection ready","Head","Document register completeness, certificate defensibility, register exports","Inspection readiness view with the gaps named","Continuous"],
+["Which cohort produced the best outcomes","Head","First-attempt pass rate traced back to admission data","Admission-to-outcome traceability","Annually"],
+["Whether the nudges are working","Head · Registrar","The triggering metric re-measured after each nudge","Nudge effectiveness by rule","Quarterly"]
+];
+
+/* =========================== BUILD PHASES =========================== */
+var PHASES = [
+{ p:"Phase 0", n:"Foundations", wks:"4–6", why:"Everything below depends on identity, audit and configuration. Building these later means retrofitting them into every module.",
+  scope:["Tenancy on every table, in the application, and at the database","Users, editable role templates and scoped permissions","The records layer: one declarative definition per entity driving list, form, validation, import and help","Soft delete with reason, dependants refusal and restore","Effective date and recorded date on every dated record","Audit trail on every write, append-only at the database","Read and disclosure logging on cadet files","Configuration console for thresholds, each carrying its source and review date","Field-level help as data on the definition","Notification service across channels","File store with scanning and retention","Scheduled job framework"],
+  exit:"A staff user can sign in, a role restricts what they see, every change and every read is logged, a record can be soft-deleted and restored, a new entity can be added as a definition rather than a screen, and a threshold can be changed without a release.",
+  risk:"Under-building the permission model, and skipping the two-dates rule because nothing yet counts days. Field-level visibility and effective dates are the two things that touch every screen when added late." },
+{ p:"Phase 1", n:"Admissions and registry", wks:"6–8", why:"This is where the drive-and-spreadsheet problem actually starts. Fix the intake and the rest of the record stays clean.",
+  scope:["The guided setup checklist, so an empty portal becomes an institute without us","Course approvals with intake cap and validity","Programmes, terms, subjects, roll-number series and master lists","Application, duplicate detection, fee capture","Eligibility engine with reason codes","Entrance assessment, interview scorecard, medical","Merit, offer, waitlist","Cadet record with photograph, statutory identifiers, guardians and standards","Document requirement sets and the verification queue","Identity number tracking","Spreadsheet import with validation, partial acceptance and rollback","Getting-started guide counted from the database","Demonstration data removable in one action"],
+  exit:"A principal can configure an empty portal alone, load three years of history from a spreadsheet, run a full intake end to end, and get a reason code on every rejection.",
+  risk:"Eligibility rules differ more between courses than they first appear. Model them as data from the start." },
+{ p:"Phase 2", n:"Academics and fees", wks:"6–8", why:"The academic record is what placement, deployment and certification all read from.",
+  scope:["Timetable and session-level attendance, with amendment by reason","Assessment definition and the result-set workflow: draft, verify, publish, revise","Competency tagging of assessment items","Workshop stations, simulator scenarios, rotation and skill sheets","Remarks by role, each with its own visibility","Re-attempt tracking","Fee schedule, receipts, ageing","Faculty register and load","The ten statutory registers, each generated on demand, with CSV and paginated PDF","Read-only inspection role, time-boxed"],
+  exit:"A term can be run through the system, a result set cannot be verified by the person who entered it, and any of the ten registers can be handed to an inspector in under a minute from live data.",
+  risk:"Competency tagging is tedious and will be skipped under time pressure. Without it, Phase 3 has nothing to compute from — treat it as non-negotiable here." },
+{ p:"Phase 3", n:"Student app, gaps and nudges", wks:"6–8", why:"The first phase the cadet experiences. It is also where the product stops being an administrative system and becomes something a student values.",
+  scope:["Cadet dashboard with position and next actions","Marks and attendance shown with context","Competency scoring and gap ranking with evidence","Nudge rules, delivery, cadence and escalation","Resource library mapped to competencies","Soft-skill observations and mentor log","Early-warning risk list","Request and grievance desk"],
+  exit:"A cadet can answer 'how am I doing and what do I do next' without asking anyone.",
+  risk:"Nudge fatigue. Ship with conservative cadence settings and measure before loosening them." },
+{ p:"Phase 4", n:"Placement and company portal", wks:"6–8", why:"The first phase with an external audience, which raises the bar on access control.",
+  scope:["Company register with relationship types, from formal agreement to open arrangement","Berth commitments with renewal lead-time alerting","Unsponsored cadet pool with its own view","Test blueprints and readiness scoring","Consent manager, field-group scope and profile release","Drive scheduling and rounds","Company workspace: pool, shortlist, assessment, offer","Cadet accepts or declines from their own login","Eligibility pre-filter by nationality and flag","Profile and CV from verified data"],
+  exit:"A company can run a drive in their own workspace and see only cadets who consented to them.",
+  risk:"A privacy failure here is the one that ends a client relationship. Test the isolation boundary explicitly and repeatedly." },
+{ p:"Phase 5", n:"Deployment and sea service", wks:"8–10", why:"The longest phase and the one with the most parties involved — cadet, ship, company and institute.",
+  scope:["Requisitions and berth matching","Deployment screening, second run against contract dates","Document pack by flag and vessel type","Travel, visa, briefing, joining instructions","Sign-on declaration and company confirmation","Per-vessel service records — first ship, second ship and beyond","Record-book tasks, watchkeeping logs by type","Monthly reviews and quarterly submissions","Distance learning programme progress alongside sea service","Sea service computation and testimonials"],
+  exit:"A cadet at sea can record progress, a company can confirm it, and the institute can see the position without an email.",
+  risk:"Connectivity at sea. Entry must tolerate being offline and syncing later, or the records will be reconstructed from memory at sign-off." },
+{ p:"Phase 6", n:"Completion and certificates", wks:"5–7", why:"The regulatory core. This is what the institute is actually accountable for.",
+  scope:["Live completion evaluation against every criterion","Mid-term review window, conduct and report","Corrective action tracking","Final submission checklist and scrutiny","Written and oral assessment scoring","Shipboard training completion certificate, blocked on a short file","Digital signature and verification code","External endorsement tracking","Appointment booking for assessment and collection","Threshold register — every regulatory figure with its source, owner and review date"],
+  exit:"No certificate can be issued on a file that does not meet every criterion, and the evidence for each is one click away.",
+  risk:"Threshold drift. Each figure must carry the circular reference it came from and a review date, or the engine quietly goes out of date." },
+{ p:"Phase 7", n:"Analytics and decisions", wks:"4–6", why:"Built last on purpose. Analytics on incomplete data teaches people to distrust the system.",
+  scope:["Institute command view across the journey","Cohort comparison and trends","Company relationship scorecard","Inspection readiness view","Admission-to-outcome traceability","Nudge effectiveness","Feedback collection and analysis"],
+  exit:"Each decision in the decision register has a screen that answers it.",
+  risk:"Building dashboards nobody uses. Start from the decision, not from the available chart." },
+{ p:"Phase 8", n:"Scale and international", wks:"ongoing", why:"Only once a single institute runs cleanly end to end.",
+  scope:["Multi-institute tenancy and per-institute configuration","International candidate pathways and equivalence","Multi-flag document requirement sets","Localisation and multi-currency","Payment gateway for course fees only","Public certificate verification","Open interfaces for learning systems and crewing software","Cross-institute cadet exchange — held until counsel has answered the placement-intermediary question"],
+  exit:"A second institute can be onboarded by configuration rather than by development.",
+  risk:"Premature generalisation. Resist building this before the first institute is genuinely live. The exchange carries a second risk that is not technical: operating a cross-institute pool may make the platform a placement intermediary, which is a question for maritime counsel before it is a question for a developer." }
+];
+
+var OPEN = [
+["Which courses and pathways are in scope at launch","Each pathway carries its own completion criteria, examination route and endorsing authority. The completion engine is built once but configured per pathway — the list decides how much configuration is needed on day one."],
+["Does the institute keep its existing learning system","If it stays, the portal links out and holds the record. If it is replaced, content hosting, assessment delivery and progress tracking all enter scope and add a phase."],
+["Who owns the competency framework","Someone has to tag every assessment item and maintain the framework. Without a named owner, Phase 3 has no inputs."],
+["What is the authoritative source of sea service","The institute's record and the company's record must agree. Decide now whether the company's confirmation is the authority or merely corroboration."],
+["How are documents stored and for how long","Retention and disposal obligations differ by document type and by jurisdiction. This affects storage design, not just a policy page."],
+["Can a company ever see an unconsented profile","The honest default is no. If the institute wants a pre-consent anonymised pool, the anonymisation has to be specified precisely before it is built."],
+["Who may override a blocking rule, and which rules can never be overridden","The recommendation is that certificate issue on a short file can never be overridden by anyone. Confirm that this is acceptable to the institute before building it that way."],
+["What happens to a cadet who leaves mid-course","Fee refund, document return, record retention and whether the file is archived or deleted. This is a real workflow, not an exception."],
+["Which notifications go by message and which by email","Message delivery costs money per send and cadets at sea cannot receive either reliably. Channel choice per nudge rule matters more than it sounds."],
+["Is the company portal part of the same product or a separate licence","This decides the tenancy model and the commercial structure, and it is easier to answer before Phase 0 than after Phase 4."],
+["What is the offline tolerance at sea","Full offline entry with sync is a substantial piece of work. Decide in Phase 0 whether it is in Phase 5 or deferred, because it shapes the data model."],
+["How is the platform handed to an inspection","A read-only inspection role with time-boxed access is the clean answer. Confirm what the institute's inspectors actually expect."],
+["Does the institute charge a cadet anything on the placement side today","If any placement, sponsorship or berth-related charge exists in current practice, it has to be unwound before go-live rather than modelled. The product cannot hold the field. This is the first question to ask, not the last."],
+["Which of the ten registers does the inspector actually open first","All ten are generated the same way, but the four inspection items carry the content that gets argued about. Confirm the current headings against the circular in force, and record the reference against each register."],
+["Who owns the competency framework and the assessment blueprint","Someone has to tag every assessment item and keep the blueprint current. Named, or the gap engine has nothing to compute from and the result set has nothing to grade against."],
+["Who verifies a result set","Segregation of duties means a second person. In a small institute that is a real staffing question, and it decides whether the rule is workable or whether it will be routed around."],
+["How much history is migrated, from what, and who owns the cleaning","Three years of marks in a spreadsheet with inconsistent names is a project, not an import. Decide the cut-off date and who resolves the duplicates before Phase 1 ends."],
+["How long is a cadet file kept after certification, and what is disposed","Retention and disposal differ by document type. An inspection asks about disposal as readily as about retention, and the answer shapes the storage design."],
+["Are the starter subject names and syllabus content verified by anyone","Plausible subject names that nobody has checked against a university or regulator document are worse than blanks. Name the academic officer who signs them off before a principal sees them."]
+];
+
+/* =========================== NON-NEGOTIABLES =========================== */
+var NONNEG = [
+["Nothing is ever charged to a cadet for a placement","legal",
+ "Maritime Labour Convention 2006, Regulation 1.4, and the rules giving effect to it: no seafarer may be charged a fee for finding them employment. Course fees, hostel and examination fees are the institute's own business and live in the fees module. Everything on the placement side — a drive, an offer, a sponsorship, a berth, a joining, a sea-service record — carries no monetary field at all, not even a zero. The statutory register of fees charged to cadets therefore stands at nil by construction. This is a schema fact, not a policy page, and it is the one rule that decides whether the product is lawful."],
+["No artificial intelligence anywhere","legal",
+ "Every figure the portal shows is arithmetic over rows a person can reproduce by hand. Competency scores, gap rankings, readiness and nudges are declared formulas with their inputs on screen. Nothing is inferred, predicted, scored by a model or generated. A result that cannot be reproduced by hand cannot be defended to an inspector or to a parent."],
+["Stable releases only","build",
+ "No preview, beta, release-candidate or nightly build of any framework, runtime, database or package goes into the product. Enforced by a check in the build pipeline that fails on a pre-release version string, with a written, dated waiver recorded for any transitive exception that cannot be avoided."],
+["Everything has a provision","build",
+ "No entity is display-only. Create, edit, review, soft delete and restore exist for every record, driven by one declarative definition per entity rather than a hand-built screen each. Adding an entity is a declaration, not a new screen, a new controller and a new form. Any request for a bespoke screen has to justify itself against that."],
+["Nothing is hard-deleted","data",
+ "A delete sets a flag and demands a reason. It is refused while any other record depends on it, and the refusal names the dependants — 'this batch still has seven cadets and two drives' rather than 'cannot delete'. Restore is a separate, logged transition. Rights govern who may delete what."],
+["Two dates on anything that counts days","data",
+ "The date a thing took effect and the date it was entered are different fields on every dated record. Arithmetic uses the effective date; the audit trail uses the recorded date. A status back-dated on Friday to take effect last Monday must count from Monday and be auditable to Friday. Retrofitting this means revisiting every calculation in the product."],
+["Every write and every read is logged","data",
+ "Writes carry before and after, the actor, the reason, the address and a correlation id. Reads of a cadet's file are logged too, because a consent gate is only as good as the record of what was actually disclosed and to whom. The log is append-only in the application and at the database, where triggers refuse an update or a delete on the log itself."],
+["A company sees a slice, never the house","legal",
+ "No disclosure without live consent, scoped to named field groups. Contact details never released before a request the cadet has accepted. Every company query scoped by a relationship predicate, not by a filter a developer can forget. Welfare and disciplinary detail disclosable to nobody. No role overrides these, the head of the institute included."],
+["Each institute's data is separated three ways","data",
+ "An institute identifier on every tenant table, a global query filter in the application, and row-level security at the database reading the session context. One of the three failing should not be enough to leak a record across institutes."],
+["The blank slate","product",
+ "The portal ships empty. An institute configures its own programmes, terms, subjects, checklists, certificate types and roles and starts enrolling without the vendor. Demonstration data is removable in one action, so the portal that sells the product is the portal that runs it."],
+["Every control explains itself","product",
+ "Help text is data on the field definition, so the hover tooltip, the inline hint and the screen walkthrough all read from one string and cannot drift apart. A tool guide and a getting-started checklist are part of the product, not a manual sent afterwards. The test is whether a principal who has never seen the portal can configure it alone."],
+["Code efficiency is a standing gate","build",
+ "One named reviewer across the whole programme, on every phase, on the rule that no line exists that does not need to. Findings applied before a phase is handed over, not logged for later."],
+["Every phase closes with an independent check","build",
+ "Someone who did not write the code checks the phase clause by clause against its written contract: conformance, cross-layer consistency, security, and whether each test actually proves what its name claims. The output is a numbered issue register with severities. No phase closes with an open blocker. This is the step that catches the defect three green test suites did not."]
+];
+
+/* =========================== TECHNOLOGY =========================== */
+var TECH_STACK = [
+["Front end","Angular, current long-term-support line","Browser and mobile from one build. No separate mobile application to maintain; the portal is used on a phone at a drive and on a desktop in the office."],
+["Back end","Microsoft .NET, current long-term-support line, C#","Chosen because the institute's own server runs it and their IT staff already support it."],
+["Database","Microsoft SQL Server","Row-level security, temporal support and the institute's existing backup practice all come with it."],
+["Hosting","The institute's own server, or managed on their behalf","A training institute holding dates of birth, guardians, contact details and medical validity has a real data-protection position. Where the data sits is their decision, not an architectural accident."],
+["Documents","Filesystem or object storage, never inside the database","Keeps backup and restore honest, and keeps a large upload from inflating every database backup."],
+["Scheduled work","A hosted background service inside the application","Not database agent jobs, which do not travel between environments and are invisible to the audit trail."],
+["Intelligence","None","Standalone portal with its own database. Stated as a constraint so that no library quietly introduces one."]
+];
+
+var TECH_RULES = [
+["Portability","File paths composed rather than concatenated, case-sensitive file names assumed, no drawing library that depends on the host operating system, and collation declared explicitly rather than inherited. The product should move between a developer's machine, a Linux server and a Windows server without a surprise."],
+["Vocabulary is served once","Any list of states, stages, groups or decisions lives on the server and is fetched. No client keeps its own copy of a list of stages, because the day the two disagree is the day a cadet is shown a stage that does not exist."],
+["Derived figures are computed, never stored as truth","Attendance percentage, aggregate, competency score, sea days, completion position: all computed from their inputs when shown. Caching for performance is fine; a writable field holding a percentage is not."],
+["Thresholds carry their source","Every regulatory figure — sea days, watchkeeping hours, task percentages, attendance minima — is a setting with the circular or guideline reference it came from, an owner and a review date. A threshold with no source quietly goes out of date."],
+["Import is a first-class path","Not a fallback. No institute will type in three years of history, and no integration arrives on time. Every entity that can be imported is imported through the same validation the form uses."],
+["Print and export from the start","Every register and report exports to CSV and prints to a paginated PDF carrying the institute's name, the date and page numbers. The real test of an institute's system is whether it can hand an inspector a dated, complete register in a minute."],
+["No real-time","No websockets, no live-updating dashboards. This is a portal for staff who refresh a page. A cached read is cheaper, simpler, and nobody will notice."]
+];
+
+var PROCESS = [
+["1","Contract","The phase's clauses are written down before any code exists. Nothing gets built that the contract does not describe."],
+["2","Build","Database first, then the interface layer, then the front end, each against that contract."],
+["3","Independent check","A pass by someone who did not write it: conformance clause by clause, cross-layer consistency, security, and a judgement on whether each test proves what its name claims. Output is a numbered issue register with severities."],
+["4","Fix and re-verify","Every issue worked, then the check runs again with a status against every row. No phase closes with an open blocker."],
+["5","Efficiency review","The standing reviewer, every phase, on the rule that no line exists that does not need to."]
+];
+
+/* =========================== RENDER =========================== */
+function el(t,c,x){var n=document.createElement(t);if(c)n.className=c;if(x!=null)n.textContent=String(x);return n;}
+function $(s){return document.querySelector(s);}
+function frag(){return document.createDocumentFragment();}
+function pill(t,c){return el("span","pill"+(c?" "+c:""),t);}
+function tbl(cols,rows,render,cls){
+  var w=el("div","tw"+(cls?" "+cls:""));var t=el("table");
+  var h=el("thead"),hr=el("tr");
+  cols.forEach(function(c){var th=el("th",c.a||null,c.l);if(c.w)th.style.width=c.w;hr.appendChild(th);});
+  h.appendChild(hr);t.appendChild(h);
+  var b=el("tbody");
+  rows.forEach(function(r,i){
+    var tr=el("tr");
+    render(r,i).forEach(function(cell,j){
+      var td=el("td",cols[j]&&cols[j].a?cols[j].a:null);
+      if(cell instanceof Node)td.appendChild(cell);else td.innerHTML=cell==null?"—":String(cell);
+      tr.appendChild(td);
+    });
+    b.appendChild(tr);
+  });
+  t.appendChild(b);w.appendChild(t);return w;
+}
+function ul(items){var u=el("ul");items.forEach(function(i){u.appendChild(el("li",null,i));});return u;}
+function head(eyebrow,title,lede){
+  var d=el("div","sechead");
+  d.appendChild(el("div","eyebrow",eyebrow));
+  d.appendChild(el("h2",null,title));
+  if(lede)d.appendChild(el("p","lede",lede));
+  return d;
+}
+function ch(t){return el("h3","ch",t);}
+
+var SECTIONS=[
+{k:"overview",n:"Overview",x:"01"},
+{k:"nonneg",n:"Non-negotiables",x:"02"},
+{k:"journey",n:"The journey",x:"03"},
+{k:"roles",n:"Role surfaces",x:"04"},
+{k:"matrix",n:"Permissions",x:"05"},
+{k:"features",n:"Feature catalogue",x:"06"},
+{k:"engines",n:"Rule engines",x:"07"},
+{k:"data",n:"Data model",x:"08"},
+{k:"decisions",n:"Decision register",x:"09"},
+{k:"build",n:"Build order",x:"10"},
+{k:"tech",n:"Technology",x:"11"},
+{k:"open",n:"Open questions",x:"12"}
+];
+
+/* ---------- 01 overview ---------- */
+function secOverview(){
+  var f=frag();
+  f.appendChild(head("01 — Overview","One record of the cadet, three ways to see it",
+    "A placement and sea-service portal for a maritime training institute, sold to the institute and opened to the companies that sponsor its cadets. Today the pieces exist but nothing connects them. Marks live in a spreadsheet, documents in a drive, company correspondence in an inbox, and the record book in a physical book that nobody sees until month eighteen. Binnacle makes one record of the cadet that runs from the first enquiry to the certificate of competency, and gives three audiences a different window onto it."));
+
+  f.appendChild(ch("What is broken now"));
+  var g=el("div","cols c3");
+  [["Records without owners","A file in a shared folder has no state, no owner and no expiry. Nobody is accountable for it and nothing alerts when it lapses."],
+   ["Numbers without meaning","A cadet is told they scored 58. They are not told what that means, what it is short of, or what to do about it."],
+   ["Relationships by inbox","Company correspondence, shortlists and offers sit in email. When the placement officer is away, the relationship stops."],
+   ["The eighteen-month surprise","Record book gaps surface at final assessment, when the sea phase is over and nothing can be fixed."],
+   ["Evidence assembled in panic","An inspection means a week of reconstructing registers that should have existed all along."],
+   ["No feedback loop","Nothing tells the institute which entry criteria, which subjects or which companies actually produce good outcomes."]
+  ].forEach(function(p){
+    var c=el("div","card");
+    c.appendChild(el("b",null,p[0]));
+    c.lastChild.style.cssText="font-family:var(--display);font-size:15.5px;display:block;margin-bottom:5px";
+    c.appendChild(el("p",null,p[1]));
+    c.lastChild.style.cssText="font-size:14px;color:var(--ink-2)";
+    g.appendChild(c);
+  });
+  f.appendChild(g);
+
+  f.appendChild(ch("The three surfaces"));
+  var g2=el("div","cols c3");
+  SURFACES.forEach(function(s){
+    var c=el("div","card");
+    var h=el("div");h.style.cssText="display:flex;align-items:center;gap:9px;margin-bottom:8px";
+    h.appendChild(pill(s.name,s.colour));
+    c.appendChild(h);
+    c.appendChild(el("p",null,s.one));
+    c.lastChild.style.cssText="font-size:14.5px;color:var(--ink-2)";
+    var b=el("button","copybtn");b.type="button";b.textContent="Open "+s.name.toLowerCase()+" detail";
+    b.style.marginTop="12px";
+    b.onclick=function(){go("roles");location.hash="roles";};
+    c.appendChild(b);
+    g2.appendChild(c);
+  });
+  f.appendChild(g2);
+
+  f.appendChild(ch("Design principles"));
+  var p=el("div","cols c2");
+  [["One record","Every module reads and writes the same cadet file. A mark entered by a faculty member changes the gap list the cadet sees and the readiness score a company is shown."],
+   ["Issue only what you may issue","The institute issues course completion and shipboard training certificates. Competency certificates, identification numbers, discharge certificates and medical fitness come from the administration and are recorded, never generated. The platform enforces this rather than trusting it."],
+   ["Every rule is readable","No scoring a user cannot inspect. Each engine prints the rule, the figure and the evidence. A result that cannot be explained will not be trusted, and an unexplained result cannot be defended to an inspector."],
+   ["Thresholds are settings","Pass marks, attendance minima, document lead times and completion criteria are configuration with an owner and a review date, not constants in code."],
+   ["Nothing lives in a folder","Every artefact has a type, an owner, a state and an audit trail. This is the single largest practical change from how the work is done today."],
+   ["The student participates","If a cadet cannot see something, they cannot act on it. Visibility is the feature, not a courtesy."],
+   ["Companies get a window","Consent-gated, scoped to their own cadets, isolated from every other company. The default answer to 'can the company see this' is no."],
+   ["Inspection-ready at rest","Registers are complete and exportable at any moment. Preparing for an inspection should mean printing, not reconstructing."]
+  ].forEach(function(x,i){
+    var d=el("div","card prin");
+    d.appendChild(el("div","n",("0"+(i+1)).slice(-2)));
+    var r=el("div");r.appendChild(el("b",null,x[0]));r.appendChild(el("span",null,x[1]));
+    d.appendChild(r);p.appendChild(d);
+  });
+  f.appendChild(p);
+
+  f.appendChild(ch("Coverage against the original scope"));
+  var cov=el("div","note brass");
+  cov.innerHTML="<b>This is version 2.</b> Version 1 covered the cadet journey, the three audiences, the permission model, the rule engines and the build order, and all of that is kept. What follows was missing and has been folded in, because each one is either a legal position or a structural property that is ruinous to add late.";
+  f.appendChild(cov);
+  var cg=el("div","cols c2");cg.style.marginTop="12px";
+  [["Nothing charged to a cadet for a placement","The convention position now governs the whole placement side of the schema, and the statutory register of fees charged to cadets stands at nil by construction. Course fees are untouched and stay in the fees module.","crit"],
+   ["The ten statutory registers","Named individually, each with its source, its export and whether an inspector treats it as an inspection item. Version 1 had a generic export feature in its place.","crit"],
+   ["Institute setup as the first stage","The portal ships empty and the institute configures it alone. This is both the first journey stage and the sales demonstration, and it was absent.","warn"],
+   ["Spreadsheet import as the primary path","Validate, preview, commit, roll back — through the same rules the form uses. Version 1 listed migration as out of scope, which would have stranded every institute's history.","crit"],
+   ["Soft delete, dependants and restore","Nothing is hard-deleted; a delete demands a reason and is refused while dependants exist, naming them. Including the records the portal created itself, or a typo at admission becomes permanent.","warn"],
+   ["Two dates on anything that counts days","Effective date and recorded date as separate fields. Arithmetic uses one, the audit trail uses the other. Adding this later means revisiting every calculation.","warn"],
+   ["The result-set workflow","Draft, verify, publish, revise — with verification refused to anyone who entered a mark, and a published set storing the rule values so a grade recomputes years later.","warn"],
+   ["Workshop, simulator and conduct","A whole half of pre-sea training, with its own instructor login, skill sheets, job cards, merit and demerit, and disciplinary cases that reach no company.","warn"],
+   ["Read and disclosure logging","Who looked at a cadet's file, not only who changed it. A consent gate is only as good as the record of what was actually disclosed.","crit"],
+   ["Agreements that are not agreements","A company with no instrument is a normal relationship, not a deficiency. Five relationship types, with berth commitments and renewal lead times alongside.","info"],
+   ["Help as data, and a getting-started guide","One string drives the tooltip, the inline hint and the walkthrough. The test is whether a principal configures the portal without us.","info"],
+   ["The cadet data specification","Fourteen groups, naming who fills each and when — photograph, statutory identifiers, guardians, standards, practical record, conduct, remarks by role. Version 1 held a cadet in five fields.","info"],
+   ["Distance learning and per-vessel service","The certificate waits on both; ship-type requirements are assessed per type sailed, so each vessel is its own record.","info"],
+   ["Technology, portability and how a phase closes","The stack, the stable-releases-only rule, and the five-step close with an independent check by someone who did not write the code.","info"]
+  ].forEach(function(x){
+    var c=el("div","card");
+    c.style.borderLeft="3px solid var(--"+x[2]+")";
+    c.appendChild(el("b",null,x[0]));
+    c.lastChild.style.cssText="font-family:var(--display);font-size:14.5px;display:block;margin-bottom:5px";
+    c.appendChild(el("p",null,x[1]));
+    c.lastChild.style.cssText="font-size:13.5px;color:var(--ink-2)";
+    cg.appendChild(c);
+  });
+  f.appendChild(cg);
+
+  f.appendChild(ch("How to use this plan"));
+  var n=el("div","note");
+  n.innerHTML="Work through it in this order. <b>Non-negotiables</b> comes first because it is the only section where nothing is a choice. <b>The journey</b> is the spine — fifteen stages, each one openable for what the system does, the data it creates, the decisions it supports and how it fails. <b>Role surfaces</b> and <b>Permissions</b> settle who may do what, which is the hardest thing to change later. <b>Feature catalogue</b> is the backlog, filterable by phase. <b>Rule engines</b> hold the logic that distinguishes this from a records system. <b>Data model</b> and <b>Decision register</b> are what a developer and a product owner respectively will work from. <b>Build order</b> is the sequence, <b>Technology</b> is the stack and how a phase closes, and <b>Open questions</b> is what has to be answered before Phase 0 starts.";
+  f.appendChild(n);
+  return f;
+}
+
+/* ---------- 02 journey ---------- */
+function secJourney(){
+  var f=frag();
+  f.appendChild(head("03 — The journey",JOURNEY.length+" stages, empty portal to certification",
+    "Every feature in this plan belongs to a stage below. The first stage is the institute configuring the empty portal itself; the last is a master mariner or marine engineer in the making. Open a stage for what happens, who acts, what the system does, the records it creates, the decisions it enables, how it goes wrong, and what differs for an international candidate."));
+
+  var bar=el("div","fbar");
+  var exp=el("button","copybtn");exp.type="button";exp.textContent="Expand all";
+  var col=el("button","copybtn");col.type="button";col.textContent="Collapse all";
+  bar.appendChild(exp);bar.appendChild(col);
+  var ct=el("span","ct",JOURNEY.length+" stages");bar.appendChild(ct);
+  f.appendChild(bar);
+
+  var list=el("div","jlist");
+  JOURNEY.forEach(function(s,i){
+    var wrap=el("div","jstage");
+    var b=el("button","jhead");b.type="button";b.setAttribute("aria-expanded","false");
+    b.appendChild(el("div","jn","J"+(i+1)));
+    var mid=el("div");
+    mid.appendChild(el("div","jt",s.t));
+    mid.appendChild(el("div","jw",s.w));
+    b.appendChild(mid);
+    b.appendChild(el("div","jc","+"));
+    wrap.appendChild(b);
+
+    var body=el("div","jbody");body.hidden=true;
+    var pw=el("p",null,s.purpose);
+    pw.style.cssText="font-size:15px;color:var(--ink);margin-top:12px;max-width:72ch";
+    body.appendChild(pw);
+
+    var dl=el("dl","dgrid");
+    function row(k,v){dl.appendChild(el("dt",null,k));var dd=el("dd");
+      if(v instanceof Node)dd.appendChild(v);else dd.textContent=v;dl.appendChild(dd);}
+    row("What the system does",ul(s.sys));
+    var rec=el("div","pills");
+    s.data.forEach(function(d){rec.appendChild(el("span","tag",d));});
+    row("Records created",rec);
+    row("Decisions enabled",ul(s.dec));
+    row("How it goes wrong",ul(s.risk));
+    row("International",s.intl);
+    body.appendChild(dl);
+    wrap.appendChild(body);
+
+    b.onclick=function(){
+      var open=wrap.classList.toggle("open");
+      body.hidden=!open;
+      b.setAttribute("aria-expanded",open?"true":"false");
+    };
+    list.appendChild(wrap);
+  });
+  f.appendChild(list);
+  exp.onclick=function(){list.querySelectorAll(".jstage").forEach(function(w){
+    if(!w.classList.contains("open"))w.querySelector(".jhead").click();});};
+  col.onclick=function(){list.querySelectorAll(".jstage.open").forEach(function(w){
+    w.querySelector(".jhead").click();});};
+  return f;
+}
+
+/* ---------- 03 roles ---------- */
+function secRoles(){
+  var f=frag();
+  f.appendChild(head("04 — Role surfaces","What each audience can do",
+    "Three audiences, each with sub-roles. The powers listed are deliberate grants; the limits are deliberate refusals. Both matter — a platform defined only by what it allows will leak."));
+
+  SURFACES.forEach(function(s){
+    f.appendChild(ch(s.name));
+    var intro=el("div","note"+(s.colour==="brass"?" brass":s.colour==="info"?"":""));
+    if(s.colour==="info")intro.style.borderLeftColor="var(--info)";
+    intro.innerHTML="<b>"+s.name+".</b> "+s.one;
+    f.appendChild(intro);
+
+    var sr=el("div","cols c2");sr.style.marginTop="14px";
+    s.subroles.forEach(function(r){
+      var c=el("div","card");
+      c.appendChild(el("b",null,r[0]));
+      c.lastChild.style.cssText="font-family:var(--display);font-size:14.5px;display:block;margin-bottom:4px";
+      c.appendChild(el("p",null,r[1]));
+      c.lastChild.style.cssText="font-size:13.5px;color:var(--ink-2)";
+      sr.appendChild(c);
+    });
+    f.appendChild(sr);
+
+    var two=el("div","cols c2");two.style.marginTop="14px";
+    var pc=el("div","card");
+    pc.appendChild(el("div",null,"Can"));
+    pc.firstChild.style.cssText="font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:var(--ok);margin-bottom:8px";
+    var pu=ul(s.powers);pu.style.cssText="margin:0;padding-left:17px;font-size:14px;color:var(--ink-2)";
+    pc.appendChild(pu);two.appendChild(pc);
+    var nc=el("div","card");
+    nc.appendChild(el("div",null,"Cannot"));
+    nc.firstChild.style.cssText="font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:var(--crit);margin-bottom:8px";
+    var nu=ul(s.never);nu.style.cssText="margin:0;padding-left:17px;font-size:14px;color:var(--ink-2)";
+    nc.appendChild(nu);two.appendChild(nc);
+    f.appendChild(two);
+  });
+  return f;
+}
+
+/* ---------- 04 matrix ---------- */
+function secMatrix(){
+  var f=frag();
+  f.appendChild(head("05 — Permissions","Who may read, write and approve what",
+    "The hardest thing to retrofit. Settle this before Phase 0 ends, because field-level visibility added later touches every screen already built. Sixty-one objects against eleven roles; a blank is a deliberate refusal, not an oversight."));
+
+  var cols=[{l:"Object",w:"230px"}].concat(MATRIX_COLS.map(function(c){return {l:c,a:"ctr"};}));
+  function cell(v){
+    var cls=v==="R"||v==="W"||v==="A"?(v==="A"?"a":"y"):(v==="—"?"n":"p");
+    var s=el("span",cls,v);return s;
+  }
+  f.appendChild(tbl(cols,MATRIX,function(r){
+    return [el("b",null,r[0])].concat(r.slice(1).map(cell));
+  },"mx tight"));
+
+  var k=el("div","mxkey");
+  [["R","read"],["W","create and edit"],["A","approve or verify"],["—","no access"],
+   ["own","their own records only"],["consented","only where the cadet has consented"]].forEach(function(p){
+    var s=el("span");s.innerHTML="<b>"+p[0]+"</b>"+p[1];k.appendChild(s);
+  });
+  f.appendChild(k);
+
+  f.appendChild(ch("The refusals that matter most"));
+  var g=el("div","cols c2");
+  [["A company never sees an unconsented profile","Consent is per company, revocable, and recorded with a timestamp. This is the boundary that ends a client relationship if it leaks.",
+    "crit"],
+   ["A company never sees another company's data","Hard tenancy isolation, not a filter in a query. Test it explicitly and repeatedly.","crit"],
+   ["Internal faculty remarks never reach the cadet or a company","Visibility is set at the moment of writing, and the writer sees which setting is active.","warn"],
+   ["Medical detail stops at a fitness status","Companies and most staff roles see fit or not fit, with a validity date. The findings behind it stay with admissions and the head.","warn"],
+   ["Nobody issues a certificate on a short file","This is the one rule the platform should refuse to let the head of the institute override.","crit"],
+   ["Accounts sees no marks; faculty sees no fees","Separation by function, not by seniority. It also limits the damage from one compromised account.","info"],
+   ["Nobody verifies a result set they entered a mark in","Segregation of duties inside the academic record. The head of the institute can approve the set; they cannot be the second pair of eyes on their own entry.","warn"],
+   ["A disciplinary case reaches no company, ever","Not a permission that can be granted. Welfare and conduct detail stays inside the institute whatever the sponsoring relationship.","crit"],
+   ["The fees-charged-to-cadets register is readable and permanently empty","Readable so an inspector can see it. Empty because no field in the product can populate it.","crit"]
+  ].forEach(function(x){
+    var c=el("div","card");
+    var h=el("div");h.style.cssText="display:flex;gap:8px;align-items:flex-start;margin-bottom:6px";
+    h.appendChild(el("b",null,x[0]));
+    h.firstChild.style.cssText="font-family:var(--display);font-size:14.5px;line-height:1.3";
+    c.appendChild(h);
+    c.appendChild(el("p",null,x[1]));
+    c.lastChild.style.cssText="font-size:13.5px;color:var(--ink-2)";
+    c.style.borderLeft="3px solid var(--"+x[2]+")";
+    g.appendChild(c);
+  });
+  f.appendChild(g);
+  return f;
+}
+
+/* ---------- 05 features ---------- */
+function secFeatures(){
+  var f=frag();
+  f.appendChild(head("06 — Feature catalogue",FEATURES.length+" features across "+MODULES.length+" modules",
+    "The backlog. Filter by phase to see what a sprint looks like, or by module to scope a team. Priority is relative to the phase, not to the whole programme."));
+
+  var bar=el("div","fbar");
+  var mSel=el("select");mSel.appendChild(new Option("All modules",""));
+  MODULES.forEach(function(m){mSel.appendChild(new Option(m,m));});
+  var pSel=el("select");pSel.appendChild(new Option("All phases",""));
+  [0,1,2,3,4,5,6,7,8].forEach(function(p){pSel.appendChild(new Option("Phase "+p,String(p)));});
+  var rSel=el("select");rSel.appendChild(new Option("All surfaces",""));
+  ["Institute","Student","Company","All"].forEach(function(r){rSel.appendChild(new Option(r,r));});
+  var prSel=el("select");prSel.appendChild(new Option("All priorities",""));
+  ["Must","Should","Later"].forEach(function(p){prSel.appendChild(new Option(p,p));});
+  var q=el("input");q.type="text";q.placeholder="Search features…";
+  var ct=el("span","ct");
+  [q,mSel,pSel,rSel,prSel,ct].forEach(function(n){bar.appendChild(n);});
+  f.appendChild(bar);
+
+  var mount=el("div");
+  f.appendChild(mount);
+
+  function paint(){
+    var rows=FEATURES.filter(function(r){
+      if(mSel.value&&r[1]!==mSel.value)return false;
+      if(pSel.value!==""&&String(r[4])!==pSel.value)return false;
+      if(rSel.value&&r[3]!==rSel.value)return false;
+      if(prSel.value&&r[5]!==prSel.value)return false;
+      if(q.value&&(r[0]+" "+r[1]+" "+r[2]).toLowerCase().indexOf(q.value.toLowerCase())<0)return false;
+      return true;
+    });
+    ct.textContent=rows.length+" of "+FEATURES.length;
+    mount.innerHTML="";
+    if(!rows.length){var e=el("div","card");e.textContent="No features match these filters.";
+      e.style.textAlign="center";e.style.color="var(--ink-3)";mount.appendChild(e);return;}
+    mount.appendChild(tbl(
+      [{l:"ID",w:"52px"},{l:"Module",w:"150px"},{l:"Feature"},{l:"Surface",w:"92px"},
+       {l:"Phase",a:"ctr",w:"66px"},{l:"Priority",w:"80px"}],
+      rows,
+      function(r){
+        return [el("span","mono",r[0]),r[1],r[2],
+          pill(r[3],r[3]==="Institute"?"solid":r[3]==="Student"?"brass":r[3]==="Company"?"info":""),
+          el("span","mono",String(r[4])),
+          pill(r[5],r[5]==="Must"?"crit":r[5]==="Should"?"warn":"")];
+      },"tight"));
+  }
+  [mSel,pSel,rSel,prSel].forEach(function(s){s.onchange=paint;});
+  q.oninput=paint;
+  setTimeout(paint,0);
+
+  var sum=el("div");sum.style.marginTop="22px";
+  sum.appendChild(ch("By phase"));
+  sum.appendChild(tbl(
+    [{l:"Phase"},{l:"Features",a:"num"},{l:"Must",a:"num"},{l:"Should",a:"num"},{l:"Later",a:"num"}],
+    [0,1,2,3,4,5,6,7,8],
+    function(p){
+      var rs=FEATURES.filter(function(r){return r[4]===p;});
+      var c=function(x){return rs.filter(function(r){return r[5]===x;}).length;};
+      return ["Phase "+p+" — "+(PHASES[p]?PHASES[p].n:""),rs.length,c("Must"),c("Should"),c("Later")];
+    },"tight"));
+  f.appendChild(sum);
+  return f;
+}
+
+/* ---------- 06 engines ---------- */
+function secEngines(){
+  var f=frag();
+  f.appendChild(head("07 — Rule engines","The logic that makes it more than a records system",
+    ENGINES.length+" engines. Each is deterministic, inspectable and driven by settings rather than by code. Every one prints its rule and its figure alongside its verdict, because a result nobody can explain is a result nobody will act on."));
+
+  ENGINES.forEach(function(e){
+    f.appendChild(ch(e.id+" — "+e.name));
+    var meta=el("div","cols c3");
+    [["Runs",e.when],["Produces",e.out],["Why it exists",e.why]].forEach(function(p){
+      var c=el("div","card");
+      c.appendChild(el("div",null,p[0]));
+      c.firstChild.style.cssText="font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:var(--ink-3);margin-bottom:5px";
+      c.appendChild(el("p",null,p[1]));
+      c.lastChild.style.cssText="font-size:13.5px;color:var(--ink-2)";
+      meta.appendChild(c);
+    });
+    f.appendChild(meta);
+    if(e.note){
+      var n=el("div","note brass");n.style.marginTop="12px";
+      n.innerHTML="<b>Before you build this.</b> "+e.note;
+      f.appendChild(n);
+    }
+    var rw=el("div");rw.style.marginTop="12px";
+    e.rules.forEach(function(r){
+      var d=el("div","rule");
+      d.appendChild(el("div","rid",r[0]));
+      var t=el("div");
+      t.appendChild(el("div","rt",r[1]));
+      if(r[3])t.appendChild(el("div","rd",r[3]));
+      t.appendChild(el("div","rp",r[2]));
+      d.appendChild(t);
+      rw.appendChild(d);
+    });
+    f.appendChild(rw);
+  });
+
+  var src=el("div","src");
+  src.innerHTML="Completion thresholds in E6 are taken from the published structured shipboard training guidelines for the deck pathway. Treat them as the starting configuration, confirm each against the circular current at the time of build, and store the circular reference against the setting.";
+  f.appendChild(src);
+  return f;
+}
+
+/* ---------- 07 data ---------- */
+function secData(){
+  var f=frag();
+  var total=ENTITY_GROUPS.reduce(function(t,g){return t+g.e.length;},0);
+  f.appendChild(head("08 — Data model",total+" entities in "+ENTITY_GROUPS.length+" groups",
+    "Entities and the lifecycle states they move through. Names are indicative; the relationships and the state transitions are the part worth arguing about before anyone writes a migration."));
+
+  ENTITY_GROUPS.forEach(function(g){
+    f.appendChild(ch(g.g));
+    var grid=el("div","cols c3");
+    g.e.forEach(function(e){
+      var c=el("div","ent");
+      c.appendChild(el("div","en",e[0]));
+      c.appendChild(el("div","ed",e[1]));
+      c.appendChild(el("div","ef",e[2]));
+      grid.appendChild(c);
+    });
+    f.appendChild(grid);
+  });
+
+  f.appendChild(ch("What is captured about a cadet"));
+  var cdn=el("div","note brass");
+  cdn.innerHTML="<b>One record, fourteen groups.</b> This is the full answer to 'what does the portal hold about a cadet'. Each group names who fills it, because a field with no owner is a field that stays blank. Nothing here is duplicated anywhere else in the system: the cadet file is the record, and every other screen is a view onto part of it.";
+  f.appendChild(cdn);
+  var cdw=el("div");cdw.style.marginTop="12px";
+  f.appendChild(tbl([{l:"Group",w:"170px"},{l:"What is held"},{l:"Who fills it, and when",w:"230px"}],
+    CADET_DATA,function(r){return [el("b",null,r[0]),r[1],r[2]];},"tight"));
+
+  f.appendChild(ch("Lifecycle state machines"));
+  STATE_MACHINES.forEach(function(m){
+    var c=el("div","card");c.style.marginBottom="12px";
+    c.appendChild(el("b",null,m.n));
+    c.firstChild.style.cssText="font-family:var(--display);font-size:15.5px;display:block";
+    var sm=el("div","sm");
+    m.s.forEach(function(s,i){
+      if(i)sm.appendChild(el("span","ar","→"));
+      sm.appendChild(el("span","st"+(m.term.indexOf(s)>=0?" term":""),s));
+    });
+    c.appendChild(sm);
+    if(m.bad&&m.bad.length){
+      var bd=el("div","sm");bd.style.marginTop="6px";
+      bd.appendChild(el("span","ar","exits:"));
+      m.bad.forEach(function(s){bd.appendChild(el("span","st bad",s));});
+      c.appendChild(bd);
+    }
+    var n=el("p",null,m.note);
+    n.style.cssText="font-size:13.5px;color:var(--ink-2);margin-top:10px";
+    c.appendChild(n);
+    f.appendChild(c);
+  });
+
+  f.appendChild(ch("Derived figures — computed, never stored as truth"));
+  f.appendChild(tbl(
+    [{l:"Figure",w:"210px"},{l:"Computed from"},{l:"Used by"}],
+    [["Attendance percentage","sessions attended ÷ sessions held, per subject and overall","D2 screening · early warning · cadet dashboard"],
+     ["Academic aggregate","weighted marks across all assessments against their maxima","D3 screening · merit for later intakes · readiness"],
+     ["Competency score","recency-weighted mean of items tagged to the area","gap ranking · readiness · resource targeting"],
+     ["Gap","active reference minus competency score","student weak areas · mentor risk list · nudges"],
+     ["Readiness","blueprint-weighted, per-area-capped sum of scores","cadet targeting · shortlist defensibility"],
+     ["Sea service days","confirmed sign-on to sign-off, excluding both days","C1 completion · examination eligibility · obligation"],
+     ["Watchkeeping hours by type","certified logs summed per type","C3 to C6 completion"],
+     ["Record-book completion","tasks assessed proficient ÷ tasks applicable","C2 · C7 completion · sea-phase watchlist"],
+     ["Completion position","every criterion evaluated live","cadet sea-phase view · certificate issue gate"],
+     ["Document validity horizon","earliest expiry across the required pack","D8 · D9 · release queue"]],
+    function(r){return [el("b",null,r[0]),r[1],r[2]];},"tight"));
+
+  var n2=el("div","note");n2.style.marginTop="14px";
+  n2.innerHTML="<b>None of these are stored as a value anyone can edit.</b> They are computed from their inputs every time they are shown, so a corrected mark or a confirmed sign-off changes every figure that depends on it at once. Caching for performance is fine; a writable field holding a percentage is not.";
+  f.appendChild(n2);
+  return f;
+}
+
+/* ---------- 08 decisions ---------- */
+function secDecisions(){
+  var f=frag();
+  f.appendChild(head("09 — Decision register",DECISIONS.length+" decisions the platform exists to support",
+    "Build dashboards from this list, not the other way round. Every screen should answer a decision somebody actually makes; a chart that answers nothing trains people to ignore the system."));
+  f.appendChild(tbl(
+    [{l:"Decision",w:"230px"},{l:"Who decides",w:"150px"},{l:"Evidence needed"},{l:"Where it is answered"},{l:"How often",w:"110px"}],
+    DECISIONS,
+    function(r){return [el("b",null,r[0]),r[1],r[2],r[3],pill(r[4])];},"tight"));
+
+  f.appendChild(ch("Decisions by audience"));
+  var g=el("div","cols c3");
+  [["Institute","Admission quality, academic risk, faculty load, release readiness, certificate defensibility, inspection position, company relationships.","solid"],
+   ["Student","What to study next, whether they are ready for a given company, what document is missing, what is still short at sea, when to book an assessment.","brass"],
+   ["Company","Which cadets to shortlist, whether a sponsored cadet is progressing, whether the institute is worth renewing with.","info"]
+  ].forEach(function(x){
+    var c=el("div","card");
+    c.appendChild(pill(x[0],x[2]));
+    c.appendChild(el("p",null,x[1]));
+    c.lastChild.style.cssText="font-size:14px;color:var(--ink-2);margin-top:9px";
+    g.appendChild(c);
+  });
+  f.appendChild(g);
+  return f;
+}
+
+/* ---------- 09 build ---------- */
+function secBuild(){
+  var f=frag();
+  f.appendChild(head("10 — Build order","Nine phases, sequenced by dependency",
+    "The order is not negotiable in its first three steps: identity and audit, then the registry, then academics. Everything of value later reads from what those three produce. Durations assume a small team working on one institute."));
+
+  var n=el("div","note brass");
+  n.innerHTML="<b>Where to start on Monday.</b> Answer the open questions in section 10 first — several of them change Phase 0. Then build Phase 0 and Phase 1 together as one release, because an admissions module without audit and permissions has to be rewritten rather than extended.";
+  f.appendChild(n);
+
+  var w=el("div");w.style.marginTop="16px";
+  PHASES.forEach(function(p,i){
+    var c=el("div","ph");
+    var h=el("div","phh");
+    h.appendChild(el("span","pn",p.p));
+    h.appendChild(el("h4",null,p.n));
+    h.appendChild(pill(p.wks+" weeks",i<3?"crit":i<7?"warn":""));
+    c.appendChild(h);
+    var b=el("div","phb");
+    var why=el("p",null,p.why);
+    why.style.cssText="font-size:14.5px;color:var(--ink-2);margin-bottom:12px;max-width:72ch";
+    b.appendChild(why);
+    var two=el("div","cols c2");
+    var sc=el("div");
+    sc.appendChild(el("div",null,"Scope"));
+    sc.firstChild.style.cssText="font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:var(--ink-3);margin-bottom:6px";
+    var su=ul(p.scope);su.style.cssText="margin:0;padding-left:17px;font-size:13.8px;color:var(--ink-2)";
+    sc.appendChild(su);two.appendChild(sc);
+    var rc=el("div");
+    rc.appendChild(el("div",null,"Exit criterion"));
+    rc.firstChild.style.cssText="font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:var(--ok);margin-bottom:6px";
+    rc.appendChild(el("p",null,p.exit));
+    rc.lastChild.style.cssText="font-size:13.8px;color:var(--ink-2);margin-bottom:12px";
+    rc.appendChild(el("div",null,"Main risk"));
+    rc.lastChild.style.cssText="font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:var(--crit);margin-bottom:6px";
+    rc.appendChild(el("p",null,p.risk));
+    rc.lastChild.style.cssText="font-size:13.8px;color:var(--ink-2)";
+    two.appendChild(rc);
+    b.appendChild(two);
+    var fs=FEATURES.filter(function(r){return r[4]===i;});
+    if(fs.length){
+      var tagw=el("div","pills");tagw.style.marginTop="12px";
+      tagw.appendChild(el("span","tag",fs.length+" features"));
+      fs.slice(0,8).forEach(function(r){tagw.appendChild(el("span","tag",r[0]));});
+      if(fs.length>8)tagw.appendChild(el("span","tag","+"+(fs.length-8)+" more"));
+      b.appendChild(tagw);
+    }
+    c.appendChild(b);
+    w.appendChild(c);
+  });
+  f.appendChild(w);
+
+  f.appendChild(ch("What can run in parallel"));
+  f.appendChild(tbl(
+    [{l:"Track"},{l:"Can start"},{l:"Blocked until"}],
+    [["Platform and identity","Immediately","—"],
+     ["Admissions","Once roles and audit exist","Phase 0 complete"],
+     ["Academics","Alongside admissions, different team","Registry entities defined"],
+     ["Student app","Once marks and attendance exist","Phase 2 producing real data"],
+     ["Company portal","Design in parallel, build after the student app","Consent model settled"],
+     ["Sea phase","Design during Phase 3, build in Phase 5","Deployment screening rules agreed"],
+     ["Completion engine","Specify early, build in Phase 6","Thresholds confirmed against the circular"],
+     ["Analytics","Last","Data complete enough to be trusted"]],
+    function(r){return [el("b",null,r[0]),r[1],r[2]];},"tight"));
+  return f;
+}
+
+/* ---------- 10 open ---------- */
+function secOpen(){
+  var f=frag();
+  f.appendChild(head("12 — Open questions","Answer these before Phase 0 starts",
+    "Each one changes something structural. None of them are difficult to answer, but answering them after the build has started is expensive."));
+  var w=el("div","stack");
+  OPEN.forEach(function(o,i){
+    var c=el("div","card prin");
+    c.appendChild(el("div","n",("0"+(i+1)).slice(-2)));
+    var r=el("div");
+    r.appendChild(el("b",null,o[0]));
+    r.appendChild(el("span",null,o[1]));
+    c.appendChild(r);
+    w.appendChild(c);
+  });
+  f.appendChild(w);
+
+  f.appendChild(ch("What this plan does not yet cover"));
+  var n=el("div","note");
+  n.innerHTML="Commercial model and pricing · hosting, backup and disaster recovery · the detailed interface contract with any existing learning system · migration of historical records from the drives and spreadsheets in use today · accessibility standards · the data protection position for each jurisdiction the institute operates in. Each is a working session of its own, and none of them changes the structure above.";
+  f.appendChild(n);
+  return f;
+}
+
+/* ---------- non-negotiables ---------- */
+function secNonNeg(){
+  var f=frag();
+  f.appendChild(head("02 — Non-negotiables","The thirteen rules that cannot be traded away",
+    "Everything else in this plan is a choice. These are not. Four of them are legal positions, four are properties of the data that are ruinous to add late, two are what makes the product sellable without the vendor in the room, and three are how it gets built. If a sprint is running late, nothing here is what gives."));
+  var kinds={legal:["Legal position","crit"],data:["Structural — expensive to add later","warn"],
+    product:["Product promise","brass"],build:["How it is built","info"]};
+  var w=el("div","stack");
+  NONNEG.forEach(function(x,i){
+    var c=el("div","card prin");
+    c.style.borderLeft="3px solid var(--"+(x[1]==="legal"?"crit":x[1]==="data"?"warn":x[1]==="product"?"brass":"info")+")";
+    c.appendChild(el("div","n",("0"+(i+1)).slice(-2)));
+    var r=el("div");
+    var hd=el("div");hd.style.cssText="display:flex;gap:9px;align-items:baseline;flex-wrap:wrap;margin-bottom:4px";
+    var b=el("b",null,x[0]);b.style.cssText="display:block;font-family:var(--display);font-size:15.5px";
+    hd.appendChild(b);
+    hd.appendChild(pill(kinds[x[1]][0],kinds[x[1]][1]));
+    r.appendChild(hd);
+    r.appendChild(el("span",null,x[2]));
+    c.appendChild(r);w.appendChild(c);
+  });
+  f.appendChild(w);
+  var n=el("div","note crit");n.style.marginTop="18px";
+  n.innerHTML="<b>The one that decides whether the product is lawful.</b> Rule 01 is not a preference. If any part of the placement side of the portal can hold a figure chargeable to a cadet, the institute using it is exposed and so is whoever built it. The check is simple and worth running on every release: search the schema for a monetary column on any placement, sponsorship, berth, offer, joining or sea-service table. There should be none.";
+  f.appendChild(n);
+  return f;
+}
+
+/* ---------- technology ---------- */
+function secTech(){
+  var f=frag();
+  f.appendChild(head("11 — Technology and process","What it is built on, and how a phase closes",
+    "The stack is fixed by where this has to run: the institute's own server, supported by the institute's own IT staff. Everything below follows from that, and from the rule that only stable releases go in."));
+
+  f.appendChild(ch("The stack"));
+  f.appendChild(tbl([{l:"Layer",w:"130px"},{l:"Choice",w:"230px"},{l:"Why"}],TECH_STACK,
+    function(r){return [el("b",null,r[0]),r[1],r[2]];},"tight"));
+
+  var n=el("div","note brass");n.style.marginTop="14px";
+  n.innerHTML="<b>Stable releases only, and no exceptions by convenience.</b> No preview, beta, release-candidate or nightly build enters the product. The build pipeline fails on a pre-release version string. Where a dependency drags in a pre-release package of its own and cannot be avoided, the waiver is written down with a date and a reason, and reviewed at every phase.";
+  f.appendChild(n);
+
+  f.appendChild(ch("Engineering rules"));
+  var g=el("div","cols c2");
+  TECH_RULES.forEach(function(r){
+    var c=el("div","card");
+    c.appendChild(el("b",null,r[0]));
+    c.lastChild.style.cssText="font-family:var(--display);font-size:14.5px;display:block;margin-bottom:5px";
+    c.appendChild(el("p",null,r[1]));
+    c.lastChild.style.cssText="font-size:13.5px;color:var(--ink-2)";
+    g.appendChild(c);
+  });
+  f.appendChild(g);
+
+  f.appendChild(ch("How every phase closes"));
+  var w=el("div","stack");
+  PROCESS.forEach(function(p){
+    var c=el("div","card prin");
+    c.appendChild(el("div","n",p[0]));
+    var r=el("div");r.appendChild(el("b",null,p[1]));r.appendChild(el("span",null,p[2]));
+    c.appendChild(r);w.appendChild(c);
+  });
+  f.appendChild(w);
+  var n2=el("div","note ok");n2.style.marginTop="14px";
+  n2.innerHTML="<b>Why step three is not optional.</b> On a comparable build, the independent check found ten blocking defects behind three test suites that were all green — the layers had each been built against a different reading of the same schema. A test suite proves that the code does what its author thought. It does not prove that the author was right.";
+  f.appendChild(n2);
+  return f;
+}
+
+/* ---------- shell ---------- */
+var RENDER={overview:secOverview,nonneg:secNonNeg,journey:secJourney,roles:secRoles,
+  matrix:secMatrix,features:secFeatures,engines:secEngines,data:secData,
+  decisions:secDecisions,build:secBuild,tech:secTech,open:secOpen};
+var cur="overview";
+
+function go(k){
+  if(!RENDER[k])k="overview";
+  cur=k;
+  var m=$("#main");m.innerHTML="";
+  var s=el("div","sec on");
+  s.appendChild(RENDER[k]());
+  m.appendChild(s);
+  document.querySelectorAll("#railnav button").forEach(function(b){
+    var on=b.dataset.k===k;
+    b.setAttribute("aria-current",on?"true":"false");
+    if(on&&b.scrollIntoView)b.scrollIntoView({block:"nearest",inline:"nearest"});
+  });
+  try{localStorage.setItem("binnacle.sec",k);}catch(e){}
+  m.scrollTop=0;window.scrollTo(0,0);
+}
+
+(function init(){
+  var nav=$("#railnav");
+  SECTIONS.forEach(function(s){
+    var b=el("button");b.type="button";b.dataset.k=s.k;
+    b.appendChild(el("span","nx",s.x));
+    b.appendChild(el("span",null,s.n));
+    b.onclick=function(){location.hash=s.k;go(s.k);};
+    nav.appendChild(b);
+  });
+  $("#themeBtn").onclick=function(){
+    var r=document.documentElement;
+    var dark=r.getAttribute("data-theme")==="dark"||
+      (!r.getAttribute("data-theme")&&window.matchMedia("(prefers-color-scheme: dark)").matches);
+    r.setAttribute("data-theme",dark?"light":"dark");
+    try{localStorage.setItem("binnacle.theme",dark?"light":"dark");}catch(e){}
+  };
+  try{var t=localStorage.getItem("binnacle.theme");if(t)document.documentElement.setAttribute("data-theme",t);}catch(e){}
+  var start=(location.hash||"").replace("#","");
+  if(!RENDER[start]){try{start=localStorage.getItem("binnacle.sec");}catch(e){}}
+  go(RENDER[start]?start:"overview");
+  window.addEventListener("hashchange",function(){
+    var k=(location.hash||"").replace("#","");
+    if(RENDER[k]&&k!==cur)go(k);
+  });
+})();
+
+</script>
