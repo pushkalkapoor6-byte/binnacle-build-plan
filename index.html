@@ -583,7 +583,54 @@ var JOURNEY = [
   risk:["Contact lost at sign-off, so outcomes are never known.",
     "Service obligation tracked by the company and the institute separately, with the two disagreeing.",
     "Pass-rate claims made in marketing that the record cannot support."],
-  intl:"Certification may be sought from a different administration entirely, and the institute's role may end at the completion certificate." }
+  intl:"Certification may be sought from a different administration entirely, and the institute's role may end at the completion certificate." },
+
+{ n:"J18", t:"Review, inspection and improvement", w:"Head of Institute · Registrar · Faculty · Inspector",
+  purpose:"Close the loop. Everything the portal has recorded is only worth the decisions it changes — about who to admit next year, what to teach differently, and which company relationships to keep.",
+  sys:[
+    "Cohort outcomes traced back to entry data: which entry profiles actually produced the best first-attempt pass rates.",
+    "Subject and component review, so a cohort that consistently falls short on one thing reads as a delivery signal rather than as a run of weak cadets.",
+    "Anonymous feedback from cadets on faculty, course and facilities, released only once enough responses are in for nobody to be identifiable.",
+    "Faculty load and utilisation against capacity.",
+    "Company scorecard: berths promised against berths given, offers converted, cadets retained, feedback quality.",
+    "Inspection readiness held as a continuous state rather than an event, with read-only, time-boxed access for the inspector.",
+    "A register of regulatory changes, each landing against the settings it affects rather than in somebody's inbox.",
+    "Findings from any review carried as tracked actions with an owner and a date, not as paragraphs in a report."],
+  data:["CohortOutcome","SubjectReview","FeedbackCycle","FacultyUtilisation","CompanyScorecard","InspectionGrant","CircularRecord","CorrectiveAction"],
+  dec:["Whether to change the entry criteria for the next intake, on evidence rather than on impression.",
+    "Which subject or workshop station to change, and whether the problem is content, delivery or assessment.",
+    "Which company relationships to invest in, and which to let lapse.",
+    "Whether the institute would survive an inspection opened this morning."],
+  risk:["Feedback collected and never acted on, which teaches a cohort that the exercise is theatre.",
+    "A review that names problems and produces no tracked action, so the same findings appear next year.",
+    "Inspection readiness treated as an event, so every inspection costs a week of reconstruction.",
+    "Outcome data used in marketing that the record cannot actually support."],
+  intl:"Where cadets certify under more than one administration, outcomes have to be reported per administration rather than as one pass rate." }
+];
+
+/* ---- the journey in seven acts ---- */
+var ACTS = [
+["Before anyone enrols","1","The institute",
+ "The portal is configured and signed off: programmes, terms, subjects, checklists, roles, and an approval with seats under it."],
+["Getting in","2 – 6","The institute and the applicant",
+ "A seat is confirmed against a valid approval, the person is eligible and medically fit, and the funding is in place."],
+["Ashore","7 – 11","The institute and the cadet",
+ "The academic and practical record is complete and verified, and the cadet knows where they stand and what to fix."],
+["Getting a berth","12 – 13","Placement, the company and the cadet",
+ "A company has made an offer the cadet accepted, and every document is valid through to the end of the intended contract."],
+["At sea","14 – 15","The cadet, the ship and the company",
+ "Service, tasks and hours accumulate with evidence behind them, and the halfway review has been held and acted on."],
+["Getting certified","16 – 17","The institute and the authority",
+ "Every completion criterion is met on evidence, the certificate is issued, and the examination is applied for and passed."],
+["Closing the loop","18","The institute",
+ "Outcomes are traced back to entry, feedback is acted on, and the registers would survive an inspection opened today."]
+];
+
+var HANDOVERS = [
+["The institute to the cadet","at enrolment","The cadet gets a login and becomes a participant rather than a subject. If they cannot see it, they cannot act on it — and the institute inherits every question they would have answered themselves."],
+["The institute to the company","at consent","The only point where a cadet's record leaves the building. Scoped to named field groups, revocable, and logged on both sides."],
+["The company to the ship","at sign-on","The moment the institute loses line of sight. Everything after it is evidence somebody else creates, which is why sign-on is confirmed rather than declared."],
+["The ship back to the institute","at submission","Monthly reviews, quarterly summaries, the record book. Where this handover is weak, gaps appear at final assessment and nothing can be done about them."]
 ];
 
 /* =========================== ROLE SURFACES =========================== */
@@ -1065,7 +1112,7 @@ var ENGINES = [
     ["R7","Cadet joining","confirmed joinings","Inspection item."],
     ["R8","Correspondence","entered by hand",""],
     ["R9","Complaints and grievances","the fact of a complaint and its state, never its content","The content stays with the institute. The register proves the complaint was received and handled."],
-    ["R10","Fees charged to cadets","nil by construction","There is no field anywhere in the product that can populate this register. If it can ever be non-empty, the product is unlawful. See non-negotiable 01."],
+    ["R10","Fees charged to cadets","nil — no charge is held against a cadet anywhere in the portal","The register exists because an inspector asks for it. It generates empty because there is nothing to put in it: cadets get a dashboard, not an invoice."],
     ["R11","Generation is per register","never all ten at page load","Ten registers generated at once is a page that hangs, which is exactly how an inspection goes badly."]]},
 
 { id:"E9", name:"Delete, dependants and restore", when:"On any delete request",
@@ -1336,43 +1383,12 @@ var OPEN = [
 ["Is the company portal part of the same product or a separate licence","This decides the tenancy model and the commercial structure, and it is easier to answer before Phase 0 than after Phase 4."],
 ["What is the offline tolerance at sea","Full offline entry with sync is a substantial piece of work. Decide in Phase 0 whether it is in Phase 5 or deferred, because it shapes the data model."],
 ["How is the platform handed to an inspection","A read-only inspection role with time-boxed access is the clean answer. Confirm what the institute's inspectors actually expect."],
-["Does the institute charge a cadet anything on the placement side today","If any placement, sponsorship or berth-related charge exists in current practice, it has to be unwound before go-live rather than modelled. The product cannot hold the field. This is the first question to ask, not the last."],
 ["Which of the ten registers does the inspector actually open first","All ten are generated the same way, but the four inspection items carry the content that gets argued about. Confirm the current headings against the circular in force, and record the reference against each register."],
 ["Who owns the competency framework and the assessment blueprint","Someone has to tag every assessment item and keep the blueprint current. Named, or the gap engine has nothing to compute from and the result set has nothing to grade against."],
 ["Who verifies a result set","Segregation of duties means a second person. In a small institute that is a real staffing question, and it decides whether the rule is workable or whether it will be routed around."],
 ["How much history is migrated, from what, and who owns the cleaning","Three years of marks in a spreadsheet with inconsistent names is a project, not an import. Decide the cut-off date and who resolves the duplicates before Phase 1 ends."],
 ["How long is a cadet file kept after certification, and what is disposed","Retention and disposal differ by document type. An inspection asks about disposal as readily as about retention, and the answer shapes the storage design."],
 ["Are the starter subject names and syllabus content verified by anyone","Plausible subject names that nobody has checked against a university or regulator document are worse than blanks. Name the academic officer who signs them off before a principal sees them."]
-];
-
-/* =========================== NON-NEGOTIABLES =========================== */
-var NONNEG = [
-["Nothing is ever charged to a cadet for a placement","legal",
- "Maritime Labour Convention 2006, Regulation 1.4, and the rules giving effect to it: no seafarer may be charged a fee for finding them employment. Course fees, hostel and examination fees are the institute's own business and live in the fees module. Everything on the placement side — a drive, an offer, a sponsorship, a berth, a joining, a sea-service record — carries no monetary field at all, not even a zero. The statutory register of fees charged to cadets therefore stands at nil by construction. This is a schema fact, not a policy page, and it is the one rule that decides whether the product is lawful."],
-["No artificial intelligence anywhere","legal",
- "Every figure the portal shows is arithmetic over rows a person can reproduce by hand. Competency scores, gap rankings, readiness and nudges are declared formulas with their inputs on screen. Nothing is inferred, predicted, scored by a model or generated. A result that cannot be reproduced by hand cannot be defended to an inspector or to a parent."],
-["Stable releases only","build",
- "No preview, beta, release-candidate or nightly build of any framework, runtime, database or package goes into the product. Enforced by a check in the build pipeline that fails on a pre-release version string, with a written, dated waiver recorded for any transitive exception that cannot be avoided."],
-["Everything has a provision","build",
- "No entity is display-only. Create, edit, review, soft delete and restore exist for every record, driven by one declarative definition per entity rather than a hand-built screen each. Adding an entity is a declaration, not a new screen, a new controller and a new form. Any request for a bespoke screen has to justify itself against that."],
-["Nothing is hard-deleted","data",
- "A delete sets a flag and demands a reason. It is refused while any other record depends on it, and the refusal names the dependants — 'this batch still has seven cadets and two drives' rather than 'cannot delete'. Restore is a separate, logged transition. Rights govern who may delete what."],
-["Two dates on anything that counts days","data",
- "The date a thing took effect and the date it was entered are different fields on every dated record. Arithmetic uses the effective date; the audit trail uses the recorded date. A status back-dated on Friday to take effect last Monday must count from Monday and be auditable to Friday. Retrofitting this means revisiting every calculation in the product."],
-["Every write and every read is logged","data",
- "Writes carry before and after, the actor, the reason, the address and a correlation id. Reads of a cadet's file are logged too, because a consent gate is only as good as the record of what was actually disclosed and to whom. The log is append-only in the application and at the database, where triggers refuse an update or a delete on the log itself."],
-["A company sees a slice, never the house","legal",
- "No disclosure without live consent, scoped to named field groups. Contact details never released before a request the cadet has accepted. Every company query scoped by a relationship predicate, not by a filter a developer can forget. Welfare and disciplinary detail disclosable to nobody. No role overrides these, the head of the institute included."],
-["Each institute's data is separated three ways","data",
- "An institute identifier on every tenant table, a global query filter in the application, and row-level security at the database reading the session context. One of the three failing should not be enough to leak a record across institutes."],
-["The blank slate","product",
- "The portal ships empty. An institute configures its own programmes, terms, subjects, checklists, certificate types and roles and starts enrolling without the vendor. Demonstration data is removable in one action, so the portal that sells the product is the portal that runs it."],
-["Every control explains itself","product",
- "Help text is data on the field definition, so the hover tooltip, the inline hint and the screen walkthrough all read from one string and cannot drift apart. A tool guide and a getting-started checklist are part of the product, not a manual sent afterwards. The test is whether a principal who has never seen the portal can configure it alone."],
-["Code efficiency is a standing gate","build",
- "One named reviewer across the whole programme, on every phase, on the rule that no line exists that does not need to. Findings applied before a phase is handed over, not logged for later."],
-["Every phase closes with an independent check","build",
- "Someone who did not write the code checks the phase clause by clause against its written contract: conformance, cross-layer consistency, security, and whether each test actually proves what its name claims. The output is a numbered issue register with severities. No phase closes with an open blocker. This is the step that catches the defect three green test suites did not."]
 ];
 
 /* =========================== TECHNOLOGY =========================== */
@@ -1383,7 +1399,7 @@ var TECH_STACK = [
 ["Hosting","The institute's own server, or managed on their behalf","A training institute holding dates of birth, guardians, contact details and medical validity has a real data-protection position. Where the data sits is their decision, not an architectural accident."],
 ["Documents","Filesystem or object storage, never inside the database","Keeps backup and restore honest, and keeps a large upload from inflating every database backup."],
 ["Scheduled work","A hosted background service inside the application","Not database agent jobs, which do not travel between environments and are invisible to the audit trail."],
-["Intelligence","None","Standalone portal with its own database. Stated as a constraint so that no library quietly introduces one."]
+["Computation","Declared formulas, not models","Every figure the portal shows — attendance, aggregate, competency score, readiness, sea days, completion position — is arithmetic over rows, with the formula and its inputs visible on screen. That is what makes a result defensible to an inspector or to a parent. An assistant that helps staff search records the portal already holds is a separate question and a reasonable one; what it must not become is the thing that produces the figures."]
 ];
 
 var TECH_RULES = [
@@ -1437,24 +1453,23 @@ function head(eyebrow,title,lede){
 function ch(t){return el("h3","ch",t);}
 
 var SECTIONS=[
-{k:"overview",n:"Overview",x:"01"},
-{k:"nonneg",n:"Non-negotiables",x:"02"},
-{k:"journey",n:"The journey",x:"03"},
-{k:"roles",n:"Role surfaces",x:"04"},
-{k:"matrix",n:"Permissions",x:"05"},
-{k:"features",n:"Feature catalogue",x:"06"},
-{k:"engines",n:"Rule engines",x:"07"},
-{k:"data",n:"Data model",x:"08"},
-{k:"decisions",n:"Decision register",x:"09"},
-{k:"build",n:"Build order",x:"10"},
-{k:"tech",n:"Technology",x:"11"},
-{k:"open",n:"Open questions",x:"12"}
+{k:"journey",n:"The journey",x:"01"},
+{k:"overview",n:"Overview",x:"02"},
+{k:"roles",n:"Role surfaces",x:"03"},
+{k:"matrix",n:"Permissions",x:"04"},
+{k:"features",n:"Feature catalogue",x:"05"},
+{k:"engines",n:"Rule engines",x:"06"},
+{k:"data",n:"Data model",x:"07"},
+{k:"decisions",n:"Decision register",x:"08"},
+{k:"build",n:"Build order",x:"09"},
+{k:"tech",n:"Technology",x:"10"},
+{k:"open",n:"Open questions",x:"11"}
 ];
 
 /* ---------- 01 overview ---------- */
 function secOverview(){
   var f=frag();
-  f.appendChild(head("01 — Overview","One record of the cadet, three ways to see it",
+  f.appendChild(head("02 — Overview","One record of the cadet, three ways to see it",
     "A placement and sea-service portal for a maritime training institute, sold to the institute and opened to the companies that sponsor its cadets. Today the pieces exist but nothing connects them. Marks live in a spreadsheet, documents in a drive, company correspondence in an inbox, and the record book in a physical book that nobody sees until month eighteen. Binnacle makes one record of the cadet that runs from the first enquiry to the certificate of competency, and gives three audiences a different window onto it."));
 
   f.appendChild(ch("What is broken now"));
@@ -1512,18 +1527,17 @@ function secOverview(){
 
   f.appendChild(ch("Coverage against the original scope"));
   var cov=el("div","note brass");
-  cov.innerHTML="<b>This is version 2.</b> Version 1 covered the cadet journey, the three audiences, the permission model, the rule engines and the build order, and all of that is kept. What follows was missing and has been folded in, because each one is either a legal position or a structural property that is ruinous to add late.";
+  cov.innerHTML="<b>This is version 2.</b> Version 1 covered the cadet journey, the three audiences, the permission model, the rule engines and the build order, and all of that is kept. What follows was missing from it and has been folded in. Most of these are structural — cheap to decide now and expensive to add once screens exist.";
   f.appendChild(cov);
   var cg=el("div","cols c2");cg.style.marginTop="12px";
-  [["Nothing charged to a cadet for a placement","The convention position now governs the whole placement side of the schema, and the statutory register of fees charged to cadets stands at nil by construction. Course fees are untouched and stay in the fees module.","crit"],
-   ["The ten statutory registers","Named individually, each with its source, its export and whether an inspector treats it as an inspection item. Version 1 had a generic export feature in its place.","crit"],
+  [["The ten statutory registers","Named individually, each with its source, its export and whether an inspector treats it as an inspection item. Version 1 had a generic export feature in its place.","crit"],
    ["Institute setup as the first stage","The portal ships empty and the institute configures it alone. This is both the first journey stage and the sales demonstration, and it was absent.","warn"],
    ["Spreadsheet import as the primary path","Validate, preview, commit, roll back — through the same rules the form uses. Version 1 listed migration as out of scope, which would have stranded every institute's history.","crit"],
    ["Soft delete, dependants and restore","Nothing is hard-deleted; a delete demands a reason and is refused while dependants exist, naming them. Including the records the portal created itself, or a typo at admission becomes permanent.","warn"],
    ["Two dates on anything that counts days","Effective date and recorded date as separate fields. Arithmetic uses one, the audit trail uses the other. Adding this later means revisiting every calculation.","warn"],
    ["The result-set workflow","Draft, verify, publish, revise — with verification refused to anyone who entered a mark, and a published set storing the rule values so a grade recomputes years later.","warn"],
    ["Workshop, simulator and conduct","A whole half of pre-sea training, with its own instructor login, skill sheets, job cards, merit and demerit, and disciplinary cases that reach no company.","warn"],
-   ["Read and disclosure logging","Who looked at a cadet's file, not only who changed it. A consent gate is only as good as the record of what was actually disclosed.","crit"],
+   ["Read and disclosure logging","Who looked at a cadet's file, not only who changed it. A consent gate is only as good as the record of what was actually disclosed.","warn"],
    ["Agreements that are not agreements","A company with no instrument is a normal relationship, not a deficiency. Five relationship types, with berth commitments and renewal lead times alongside.","info"],
    ["Help as data, and a getting-started guide","One string drives the tooltip, the inline hint and the walkthrough. The test is whether a principal configures the portal without us.","info"],
    ["The cadet data specification","Fourteen groups, naming who fills each and when — photograph, statutory identifiers, guardians, standards, practical record, conduct, remarks by role. Version 1 held a cadet in five fields.","info"],
@@ -1542,7 +1556,7 @@ function secOverview(){
 
   f.appendChild(ch("How to use this plan"));
   var n=el("div","note");
-  n.innerHTML="Work through it in this order. <b>Non-negotiables</b> comes first because it is the only section where nothing is a choice. <b>The journey</b> is the spine — fifteen stages, each one openable for what the system does, the data it creates, the decisions it supports and how it fails. <b>Role surfaces</b> and <b>Permissions</b> settle who may do what, which is the hardest thing to change later. <b>Feature catalogue</b> is the backlog, filterable by phase. <b>Rule engines</b> hold the logic that distinguishes this from a records system. <b>Data model</b> and <b>Decision register</b> are what a developer and a product owner respectively will work from. <b>Build order</b> is the sequence, <b>Technology</b> is the stack and how a phase closes, and <b>Open questions</b> is what has to be answered before Phase 0 starts.";
+  n.innerHTML="Work through it in this order. <b>The journey</b> is the spine — fifteen stages, each one openable for what the system does, the data it creates, the decisions it supports and how it fails. <b>Role surfaces</b> and <b>Permissions</b> settle who may do what, which is the hardest thing to change later. <b>Feature catalogue</b> is the backlog, filterable by phase. <b>Rule engines</b> hold the logic that distinguishes this from a records system. <b>Data model</b> and <b>Decision register</b> are what a developer and a product owner respectively will work from. <b>Build order</b> is the sequence, <b>Technology</b> is the stack and how a phase closes, and <b>Open questions</b> is what has to be answered before Phase 0 starts.";
   f.appendChild(n);
   return f;
 }
@@ -1550,8 +1564,33 @@ function secOverview(){
 /* ---------- 02 journey ---------- */
 function secJourney(){
   var f=frag();
-  f.appendChild(head("03 — The journey",JOURNEY.length+" stages, empty portal to certification",
-    "Every feature in this plan belongs to a stage below. The first stage is the institute configuring the empty portal itself; the last is a master mariner or marine engineer in the making. Open a stage for what happens, who acts, what the system does, the records it creates, the decisions it enables, how it goes wrong, and what differs for an international candidate."));
+  f.appendChild(head("01 — The journey",JOURNEY.length+" stages, empty portal to certified officer",
+    "This is the spine. Everything else in the plan — features, permissions, engines, entities — belongs to a stage below. Read it as the flow the portal has to hold, before worrying about what gets built first or what the rules will be."));
+
+  f.appendChild(ch("The shape of it"));
+  f.appendChild(tbl([{l:"Act",w:"170px"},{l:"Stages",w:"76px",a:"ctr"},{l:"Who holds it",w:"210px"},{l:"What has to be true before it moves on"}],
+    ACTS,function(r){return [el("b",null,r[0]),el("span","mono",r[1]),r[2],r[3]];},"tight"));
+
+  var hn=el("div","note brass");hn.style.marginTop="14px";
+  hn.innerHTML="<b>Four handovers, and they are where it breaks.</b> A stage going wrong is usually recoverable inside the institute. A handover going wrong is not, because the baton is already with somebody who does not work for you.";
+  f.appendChild(hn);
+  var hg=el("div","cols c2");hg.style.marginTop="12px";
+  HANDOVERS.forEach(function(h){
+    var c=el("div","card");
+    var t=el("div");t.style.cssText="display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;margin-bottom:5px";
+    var b=el("b",null,h[0]);b.style.cssText="font-family:var(--display);font-size:14.5px";
+    t.appendChild(b);t.appendChild(pill(h[1],"info"));
+    c.appendChild(t);
+    c.appendChild(el("p",null,h[2]));
+    c.lastChild.style.cssText="font-size:13.5px;color:var(--ink-2)";
+    hg.appendChild(c);
+  });
+  f.appendChild(hg);
+
+  f.appendChild(ch("Stage by stage"));
+  var sx=el("p",null,"Open a stage for what happens, who acts, what the system does, the records it creates, the decisions it enables, how it goes wrong, and what differs for an international candidate.");
+  sx.style.cssText="font-size:14px;color:var(--ink-2);margin-bottom:12px;max-width:72ch";
+  f.appendChild(sx);
 
   var bar=el("div","fbar");
   var exp=el("button","copybtn");exp.type="button";exp.textContent="Expand all";
@@ -1608,7 +1647,7 @@ function secJourney(){
 /* ---------- 03 roles ---------- */
 function secRoles(){
   var f=frag();
-  f.appendChild(head("04 — Role surfaces","What each audience can do",
+  f.appendChild(head("03 — Role surfaces","What each audience can do",
     "Three audiences, each with sub-roles. The powers listed are deliberate grants; the limits are deliberate refusals. Both matter — a platform defined only by what it allows will leak."));
 
   SURFACES.forEach(function(s){
@@ -1648,7 +1687,7 @@ function secRoles(){
 /* ---------- 04 matrix ---------- */
 function secMatrix(){
   var f=frag();
-  f.appendChild(head("05 — Permissions","Who may read, write and approve what",
+  f.appendChild(head("04 — Permissions","Who may read, write and approve what",
     "The hardest thing to retrofit. Settle this before Phase 0 ends, because field-level visibility added later touches every screen already built. Sixty-one objects against eleven roles; a blank is a deliberate refusal, not an oversight."));
 
   var cols=[{l:"Object",w:"230px"}].concat(MATRIX_COLS.map(function(c){return {l:c,a:"ctr"};}));
@@ -1678,7 +1717,7 @@ function secMatrix(){
    ["Accounts sees no marks; faculty sees no fees","Separation by function, not by seniority. It also limits the damage from one compromised account.","info"],
    ["Nobody verifies a result set they entered a mark in","Segregation of duties inside the academic record. The head of the institute can approve the set; they cannot be the second pair of eyes on their own entry.","warn"],
    ["A disciplinary case reaches no company, ever","Not a permission that can be granted. Welfare and conduct detail stays inside the institute whatever the sponsoring relationship.","crit"],
-   ["The fees-charged-to-cadets register is readable and permanently empty","Readable so an inspector can see it. Empty because no field in the product can populate it.","crit"]
+   ["The fees-charged-to-cadets register is readable and empty","Readable so an inspector can open it. Empty because the portal holds no charge against a cadet.","info"]
   ].forEach(function(x){
     var c=el("div","card");
     var h=el("div");h.style.cssText="display:flex;gap:8px;align-items:flex-start;margin-bottom:6px";
@@ -1697,7 +1736,7 @@ function secMatrix(){
 /* ---------- 05 features ---------- */
 function secFeatures(){
   var f=frag();
-  f.appendChild(head("06 — Feature catalogue",FEATURES.length+" features across "+MODULES.length+" modules",
+  f.appendChild(head("05 — Feature catalogue",FEATURES.length+" features across "+MODULES.length+" modules",
     "The backlog. Filter by phase to see what a sprint looks like, or by module to scope a team. Priority is relative to the phase, not to the whole programme."));
 
   var bar=el("div","fbar");
@@ -1762,7 +1801,7 @@ function secFeatures(){
 /* ---------- 06 engines ---------- */
 function secEngines(){
   var f=frag();
-  f.appendChild(head("07 — Rule engines","The logic that makes it more than a records system",
+  f.appendChild(head("06 — Rule engines","The logic that makes it more than a records system",
     ENGINES.length+" engines. Each is deterministic, inspectable and driven by settings rather than by code. Every one prints its rule and its figure alongside its verdict, because a result nobody can explain is a result nobody will act on."));
 
   ENGINES.forEach(function(e){
@@ -1806,7 +1845,7 @@ function secEngines(){
 function secData(){
   var f=frag();
   var total=ENTITY_GROUPS.reduce(function(t,g){return t+g.e.length;},0);
-  f.appendChild(head("08 — Data model",total+" entities in "+ENTITY_GROUPS.length+" groups",
+  f.appendChild(head("07 — Data model",total+" entities in "+ENTITY_GROUPS.length+" groups",
     "Entities and the lifecycle states they move through. Names are indicative; the relationships and the state transitions are the part worth arguing about before anyone writes a migration."));
 
   ENTITY_GROUPS.forEach(function(g){
@@ -1877,7 +1916,7 @@ function secData(){
 /* ---------- 08 decisions ---------- */
 function secDecisions(){
   var f=frag();
-  f.appendChild(head("09 — Decision register",DECISIONS.length+" decisions the platform exists to support",
+  f.appendChild(head("08 — Decision register",DECISIONS.length+" decisions the platform exists to support",
     "Build dashboards from this list, not the other way round. Every screen should answer a decision somebody actually makes; a chart that answers nothing trains people to ignore the system."));
   f.appendChild(tbl(
     [{l:"Decision",w:"230px"},{l:"Who decides",w:"150px"},{l:"Evidence needed"},{l:"Where it is answered"},{l:"How often",w:"110px"}],
@@ -1903,7 +1942,7 @@ function secDecisions(){
 /* ---------- 09 build ---------- */
 function secBuild(){
   var f=frag();
-  f.appendChild(head("10 — Build order","Nine phases, sequenced by dependency",
+  f.appendChild(head("09 — Build order","Nine phases, sequenced by dependency",
     "The order is not negotiable in its first three steps: identity and audit, then the registry, then academics. Everything of value later reads from what those three produce. Durations assume a small team working on one institute."));
 
   var n=el("div","note brass");
@@ -1970,7 +2009,7 @@ function secBuild(){
 /* ---------- 10 open ---------- */
 function secOpen(){
   var f=frag();
-  f.appendChild(head("12 — Open questions","Answer these before Phase 0 starts",
+  f.appendChild(head("11 — Open questions","Answer these before Phase 0 starts",
     "Each one changes something structural. None of them are difficult to answer, but answering them after the build has started is expensive."));
   var w=el("div","stack");
   OPEN.forEach(function(o,i){
@@ -1991,38 +2030,10 @@ function secOpen(){
   return f;
 }
 
-/* ---------- non-negotiables ---------- */
-function secNonNeg(){
-  var f=frag();
-  f.appendChild(head("02 — Non-negotiables","The thirteen rules that cannot be traded away",
-    "Everything else in this plan is a choice. These are not. Four of them are legal positions, four are properties of the data that are ruinous to add late, two are what makes the product sellable without the vendor in the room, and three are how it gets built. If a sprint is running late, nothing here is what gives."));
-  var kinds={legal:["Legal position","crit"],data:["Structural — expensive to add later","warn"],
-    product:["Product promise","brass"],build:["How it is built","info"]};
-  var w=el("div","stack");
-  NONNEG.forEach(function(x,i){
-    var c=el("div","card prin");
-    c.style.borderLeft="3px solid var(--"+(x[1]==="legal"?"crit":x[1]==="data"?"warn":x[1]==="product"?"brass":"info")+")";
-    c.appendChild(el("div","n",("0"+(i+1)).slice(-2)));
-    var r=el("div");
-    var hd=el("div");hd.style.cssText="display:flex;gap:9px;align-items:baseline;flex-wrap:wrap;margin-bottom:4px";
-    var b=el("b",null,x[0]);b.style.cssText="display:block;font-family:var(--display);font-size:15.5px";
-    hd.appendChild(b);
-    hd.appendChild(pill(kinds[x[1]][0],kinds[x[1]][1]));
-    r.appendChild(hd);
-    r.appendChild(el("span",null,x[2]));
-    c.appendChild(r);w.appendChild(c);
-  });
-  f.appendChild(w);
-  var n=el("div","note crit");n.style.marginTop="18px";
-  n.innerHTML="<b>The one that decides whether the product is lawful.</b> Rule 01 is not a preference. If any part of the placement side of the portal can hold a figure chargeable to a cadet, the institute using it is exposed and so is whoever built it. The check is simple and worth running on every release: search the schema for a monetary column on any placement, sponsorship, berth, offer, joining or sea-service table. There should be none.";
-  f.appendChild(n);
-  return f;
-}
-
 /* ---------- technology ---------- */
 function secTech(){
   var f=frag();
-  f.appendChild(head("11 — Technology and process","What it is built on, and how a phase closes",
+  f.appendChild(head("10 — Technology and process","What it is built on, and how a phase closes",
     "The stack is fixed by where this has to run: the institute's own server, supported by the institute's own IT staff. Everything below follows from that, and from the rule that only stable releases go in."));
 
   f.appendChild(ch("The stack"));
@@ -2061,13 +2072,13 @@ function secTech(){
 }
 
 /* ---------- shell ---------- */
-var RENDER={overview:secOverview,nonneg:secNonNeg,journey:secJourney,roles:secRoles,
+var RENDER={journey:secJourney,overview:secOverview,roles:secRoles,
   matrix:secMatrix,features:secFeatures,engines:secEngines,data:secData,
   decisions:secDecisions,build:secBuild,tech:secTech,open:secOpen};
-var cur="overview";
+var cur="journey";
 
 function go(k){
-  if(!RENDER[k])k="overview";
+  if(!RENDER[k])k="journey";
   cur=k;
   var m=$("#main");m.innerHTML="";
   var s=el("div","sec on");
@@ -2101,7 +2112,7 @@ function go(k){
   try{var t=localStorage.getItem("binnacle.theme");if(t)document.documentElement.setAttribute("data-theme",t);}catch(e){}
   var start=(location.hash||"").replace("#","");
   if(!RENDER[start]){try{start=localStorage.getItem("binnacle.sec");}catch(e){}}
-  go(RENDER[start]?start:"overview");
+  go(RENDER[start]?start:"journey");
   window.addEventListener("hashchange",function(){
     var k=(location.hash||"").replace("#","");
     if(RENDER[k]&&k!==cur)go(k);
